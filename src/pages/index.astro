@@ -1,17 +1,15 @@
 ---
-
+import '../styles/global.css'; // <--- ¡Esta es la pieza que falta!
+import ReleasesList from '../components/ReleasesList.tsx';
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Dashboard</title>
+  </head>
+  <body className="bg-[#f4f4f0] text-black antialiased selection:bg-black selection:text-white min-h-screen py-10">
+    <ReleasesList client:load />
+  </body>
 </html>
