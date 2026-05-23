@@ -1,4 +1,4 @@
-import type { ReleaseDto, Response } from '../types/dtos';
+import type { ReleaseDto, ReleaseCreateDto, Response } from '../types/dtos';
 
 const API_URL = 'http://localhost:5021/api'; 
 
@@ -9,18 +9,37 @@ export const getReleases = async (): Promise<ReleaseDto[]> => {
   return json.data;
 };
 
-// --- AGREGA ESTA NUEVA FUNCIÓN ---
-// Usamos Omit para no pedir el 'id' ya que la base de datos lo genera
-export const createRelease = async (release: Omit<ReleaseDto, 'id'>): Promise<ReleaseDto> => {
+export const createRelease = async (release: ReleaseCreateDto): Promise<ReleaseDto> => {
   const response = await fetch(`${API_URL}/releases`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(release),
   });
   
   const json: Response<ReleaseDto> = await response.json();
+  if (!json.success) throw new Error(json.message);
+  return json.data;
+};
+
+
+export const updateRelease = async (id: number, release: ReleaseCreateDto): Promise<ReleaseDto> => {
+  const response = await fetch(`${API_URL}/releases/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(release),
+  });
+  
+  const json: Response<ReleaseDto> = await response.json();
+  if (!json.success) throw new Error(json.message);
+  return json.data;
+};
+
+export const deleteRelease = async (id: number, deletedBy: string): Promise<boolean> => {
+  const response = await fetch(`${API_URL}/releases/${id}?deletedBy=${deletedBy}`, {
+    method: 'DELETE',
+  });
+  
+  const json: Response<boolean> = await response.json();
   if (!json.success) throw new Error(json.message);
   return json.data;
 };

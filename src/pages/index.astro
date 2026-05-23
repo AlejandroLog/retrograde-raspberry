@@ -1,15 +1,18 @@
 ---
-import '../styles/global.css'; // <--- ¡Esta es la pieza que falta!
-import ReleasesList from '../components/ReleasesList.tsx';
+import '../styles/global.css'; 
+import AppRouter from '../components/AppRouter.tsx';
 ---
 
 <html lang="es">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width" />
-    <title>Dashboard</title>
+    <title>Sonic Fock / Distribuidora</title>
   </head>
-  <body className="bg-[#f4f4f0] text-black antialiased selection:bg-black selection:text-white min-h-screen py-10">
-    <ReleasesList client:load />
+  <body className="bg-[#f4f4f0] text-black antialiased selection:bg-black selection:text-white min-h-screen">
+    
+    <!-- Montamos la aplicación React completa aquí -->
+    <AppRouter client:only="react" />
+
   </body>
 </html>
