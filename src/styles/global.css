@@ -1,1 +1,72 @@
 @import "tailwindcss";
+
+body {
+  background-color: #0d0e12; 
+  color: #ffffff;
+}
+
+@utility neo-card {
+  border: 4px solid #000000;
+  background-color: #161920; 
+  box-shadow: 8px 8px 0px 0px #000000;
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+@utility neo-btn-primary {
+  background-color: #CCFF00; 
+  color: #000000;
+  border: 3px solid #000000;
+  font-weight: 900;
+  text-transform: uppercase;
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+  letter-spacing: 0.05em;
+  box-shadow: 4px 4px 0px 0px #000000;
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+  cursor: pointer;
+
+  &:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0px 0px #000000;
+    background-color: #ddff33; 
+  }
+
+  &:active {
+    transform: translate(4px, 4px);
+    box-shadow: none;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+  }
+}
+
+@utility neo-input {
+  width: 100%;
+  border: 3px solid #000000;
+  padding: 0.75rem;
+  background-color: #1f232b; 
+  color: #ffffff;
+  font-weight: 700;
+  box-shadow: 4px 4px 0px 0px #000000;
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+
+  &:focus {
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+    background-color: #CCFF00;
+    color: #000000; 
+  }
+
+  &::placeholder {
+    color: #64748b; 
+  }
+}
