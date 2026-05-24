@@ -83,3 +83,65 @@ export interface TrackCreateDto {
   songTitle: string;
   duration?: string;
 }
+
+
+
+
+export interface InventoryDto {
+  id: number;
+  releaseId: number;
+  physicalFormatId: number;
+  availableStock: number;
+  salePrice: number;
+  sku: string;
+}
+
+export interface SaleCreateDto {
+  saleDate?: string;
+  customerEmail: string;
+  totalAmount: number;
+  status: string;
+}
+
+export interface SaleDetailCreateDto {
+  saleId: number;
+  inventoryId: number;
+  quantity: number;
+  unitPrice: number;
+}
+
+
+export interface PhysicalFormatDto {
+  id: number;
+  name: string;
+  requiresPhysicalShipping: boolean;
+}
+
+export interface InventoryCreateDto {
+  releaseId: number;
+  physicalFormatId: number;
+  availableStock: number;
+  salePrice: number;
+  sku: string;
+}
+
+
+export interface PhysicalFormatCreateDto {
+  name: string;
+  requiresPhysicalShipping: boolean;
+}
+export interface SaleDto {
+  id: number;
+  saleDate: string;
+  customerEmail: string;
+  totalAmount: number;
+  status: string;
+}
+
+export interface SaleDetailDto {
+  id: number;
+  saleId: number;
+  inventoryId: number;
+  quantity: number;
+  unitPrice: number;
+}

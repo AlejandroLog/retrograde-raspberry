@@ -46,3 +46,9 @@ export const deleteUser = async (id: number, deletedBy: string): Promise<boolean
   if (!json.success) throw new Error(json.message);
   return json.data;
 };
+export const getAllUsers = async (): Promise<UserDto[]> => {
+  const response = await fetch(`${API_URL}/users`); 
+  const json: Response<UserDto[]> = await response.json();
+  if (!json.success) throw new Error(json.message);
+  return json.data;
+};
