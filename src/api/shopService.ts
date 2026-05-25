@@ -108,3 +108,11 @@ export const getAllSaleDetails = async (): Promise<SaleDetailDto[]> => {
   if (!json.success) throw new Error(json.message);
   return json.data;
 };
+export const deleteSale = async (id: number, deletedBy: string): Promise<boolean> => {
+  const response = await fetch(`${API_URL}/sales/${id}?deletedBy=${deletedBy}`, {
+    method: 'DELETE',
+  });
+  const json = await response.json();
+  if (!json.success) throw new Error(json.message);
+  return json.data;
+};

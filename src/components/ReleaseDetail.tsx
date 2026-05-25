@@ -3,10 +3,12 @@ import type { ReleaseDto, TrackDto, InventoryDto, PhysicalFormatDto } from '../t
 import { getTracksByRelease } from '../api/trackService';
 import { getInventoryByRelease, getPhysicalFormats } from '../api/shopService';
 
+// Interfaz actualizada para soportar el carrito mixto (Discos + Merch)
 export interface CartItem {
-  inventoryId: number;
+  inventoryId?: number | null;
+  merchandisingId?: number | null;
   releaseTitle: string;
-  formatName: string; // <--- Ahora guardamos el nombre en lugar del ID
+  formatName: string;
   price: number;
   quantity: number;
 }
@@ -55,8 +57,9 @@ export default function ReleaseDetail({
     
     onAddToCart({
       inventoryId: inv.id,
+      merchandisingId: null, // Dejamos esto en nulo porque es un disco físico/digital
       releaseTitle: release.title,
-      formatName: getFormatName(inv.physicalFormatId), // Pasamos el nombre real
+      formatName: getFormatName(inv.physicalFormatId),
       price: inv.salePrice,
       quantity: 1
     });

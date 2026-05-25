@@ -4,8 +4,10 @@ import ReleasesList from './ReleasesList';
 import ArtistProfile from './ArtistProfile';
 import TracksManager from './TracksManager';
 import ArtistSales from './ArtistSales';
+import ArtistMerch from './ArtistMerch';
 
-type ArtistView = 'perfil' | 'lanzamientos' | 'pistas' | 'ventas';
+// Agregamos 'merch' a los tipos válidos
+type ArtistView = 'perfil' | 'merch' | 'lanzamientos' | 'pistas' | 'ventas';
 
 export default function ArtistDashboard({ 
   currentUser, 
@@ -28,6 +30,8 @@ export default function ArtistDashboard({
     switch (currentView) {
       case 'perfil':
         return <ArtistProfile currentUser={currentUser} onLogout={onLogout} />;
+      case 'merch':
+        return <ArtistMerch currentUser={currentUser} />;
       case 'lanzamientos':
         return <ReleasesList currentUser={currentUser} />; 
       case 'pistas':
@@ -57,6 +61,12 @@ export default function ArtistDashboard({
               className={getNavClass('perfil')}
             >
               Mi Perfil
+            </button>
+            <button 
+              onClick={() => setCurrentView('merch')} 
+              className={getNavClass('merch')}
+            >
+              Mi Merch
             </button>
             <button 
               onClick={() => setCurrentView('lanzamientos')}

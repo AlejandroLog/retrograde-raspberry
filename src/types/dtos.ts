@@ -105,7 +105,8 @@ export interface SaleCreateDto {
 
 export interface SaleDetailCreateDto {
   saleId: number;
-  inventoryId: number;
+  inventoryId?: number | null;      
+  merchandisingId?: number | null;  
   quantity: number;
   unitPrice: number;
 }
@@ -144,4 +145,25 @@ export interface SaleDetailDto {
   inventoryId: number;
   quantity: number;
   unitPrice: number;
+}
+
+export interface MerchandisingDto {
+  id: number;
+  artistId: number;
+  name: string;
+  type: string;
+  artistPrice: number;
+  publicPrice: number;
+  photoUrl?: string;
+  status: string;
+  availableStock: number;
+  sku?: string;
+}
+
+export interface MerchandisingCreateDto {
+  artistId: number;
+  name: string;
+  type: string;
+  artistPrice: number;
+  photoUrl?: string;
 }
