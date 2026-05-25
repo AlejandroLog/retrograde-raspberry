@@ -10,7 +10,7 @@ import type {
   Response 
 } from '../types/dtos';
 
-const API_URL = 'http://localhost:5021/api';
+import { API_URL } from './config';
 
 export const getPhysicalFormats = async (): Promise<PhysicalFormatDto[]> => {
   const response = await fetch(`${API_URL}/physicalformats`);

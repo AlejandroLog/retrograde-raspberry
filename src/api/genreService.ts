@@ -1,6 +1,6 @@
 import type { MusicalGenreDto, Response } from '../types/dtos';
 
-const API_URL = 'http://localhost:5021/api';
+import { API_URL } from './config';
 
 export const getMusicalGenres = async (): Promise<MusicalGenreDto[]> => {
   const response = await fetch(`${API_URL}/musicalgenres`); 

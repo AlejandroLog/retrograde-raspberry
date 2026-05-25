@@ -1,6 +1,6 @@
 import type { ArtistDto, ArtistCreateDto, Response } from '../types/dtos';
 
-const API_URL = 'http://localhost:5021/api';
+import { API_URL } from './config';
 
 export const getArtists = async (): Promise<ArtistDto[]> => {
   const response = await fetch(`${API_URL}/artists`);
