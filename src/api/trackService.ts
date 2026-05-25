@@ -39,3 +39,9 @@ export const deleteTrack = async (id: number, deletedBy: string): Promise<boolea
   if (!json.success) throw new Error(json.message);
   return json.data;
 };
+export const getTracksByRelease = async (releaseId: number): Promise<TrackDto[]> => {
+  const response = await fetch(`${API_URL}/tracks/release/${releaseId}`);
+  const json: Response<TrackDto[]> = await response.json();
+  if (!json.success) throw new Error(json.message);
+  return json.data;
+};

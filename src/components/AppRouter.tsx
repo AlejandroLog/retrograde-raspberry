@@ -39,7 +39,6 @@ export default function AppRouter() {
         return (
           <>
             <span className="px-3 hover:bg-white hover:text-black cursor-pointer transition-colors">Catálogo</span>
-            <span className="px-3 hover:bg-white hover:text-black cursor-pointer transition-colors">Carrito [0]</span>
           </>
         );
       case 'artista':
@@ -57,15 +56,14 @@ export default function AppRouter() {
     }
   };
 
- const renderDashboard = () => {
+  const renderDashboard = () => {
     switch (currentUser.role.toLowerCase()) {
       case 'cliente':
-        return <CustomerDashboard />;
+        return <CustomerDashboard currentUser={currentUser} onLogout={handleLogout} />;
       case 'artista':
-        // ¡Importante pasar ambas props!
         return <ArtistDashboard currentUser={currentUser} onLogout={handleLogout} />; 
       case 'admin':
-        return <AdminDashboard />;
+        return <AdminDashboard currentUser={currentUser} />;
       default:
         return (
           <div className="p-8 font-mono text-red-600 font-bold animate-pulse">

@@ -64,11 +64,20 @@ export default function TracksManager({ currentUser }: { currentUser: UserDto })
       setSongTitle(isEditing.songTitle);
       setDuration(isEditing.duration || '');
     } else {
-      setTrackNumber('1');
       setSongTitle('');
       setDuration('');
+      
+      if (releaseId) {
+        const tracksForThisRelease = myTracks.filter(t => t.releaseId.toString() === releaseId);
+        if (tracksForThisRelease.length > 0) {
+          const maxTrack = Math.max(...tracksForThisRelease.map(t => t.trackNumber));
+          setTrackNumber((maxTrack + 1).toString());
+        } else {
+          setTrackNumber('1');
+        }
+      }
     }
-  }, [isEditing]);
+  }, [isEditing, releaseId, myTracks]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,10 +86,31 @@ export default function TracksManager({ currentUser }: { currentUser: UserDto })
       return;
     }
 
+    if (duration) {
+      const durationRegex = /^\d{1,3}:[0-5]\d$/;
+      if (!durationRegex.test(duration)) {
+        alert("[ERROR] La duración es inválida. Usa el formato MM:SS (ejemplo: 03:45 o 12:30). Los segundos no pueden pasar de 59.");
+        return;
+      }
+    }
+
+    const tNumber = parseInt(trackNumber);
+
+    // Validación anti-duplicados
+    if (!isEditing) {
+      const isDuplicate = myTracks.some(
+        t => t.releaseId.toString() === releaseId && t.trackNumber === tNumber
+      );
+      if (isDuplicate) {
+        alert(`[ERROR] El track #${tNumber} ya existe en este lanzamiento. Por favor, verifica el Setlist.`);
+        return;
+      }
+    }
+
     try {
       const trackData = {
         releaseId: parseInt(releaseId),
-        trackNumber: parseInt(trackNumber),
+        trackNumber: tNumber,
         songTitle,
         duration: duration || undefined
       };
@@ -92,7 +122,7 @@ export default function TracksManager({ currentUser }: { currentUser: UserDto })
       }
 
       setIsEditing(null);
-      loadData();
+      loadData(); 
     } catch (err: any) {
       alert("Error: " + err.message);
     }
@@ -113,7 +143,7 @@ export default function TracksManager({ currentUser }: { currentUser: UserDto })
     return release ? release.title : 'Desconocido';
   };
 
-  if (loading) return <p className="animate-pulse font-mono">Buscando cintas master...</p>;
+  if (loading) return <p className="animate-pulse font-mono p-8">Buscando cintas master...</p>;
 
   if (myReleases.length === 0) {
     return (
@@ -125,7 +155,7 @@ export default function TracksManager({ currentUser }: { currentUser: UserDto })
   }
 
   return (
-    <div className="max-w-4xl font-mono">
+    <div className="max-w-4xl font-mono mt-4">
       
       <form 
         onSubmit={handleSubmit}
@@ -139,7 +169,7 @@ export default function TracksManager({ currentUser }: { currentUser: UserDto })
             <button 
               type="button" 
               onClick={() => setIsEditing(null)}
-              className="bg-black text-white px-3 py-1 font-bold text-sm uppercase hover:bg-red-600 transition-colors"
+              className="bg-black text-white px-3 py-1 font-bold text-sm uppercase hover:bg-red-600 transition-colors cursor-pointer"
             >
               CANCELAR
             </button>
@@ -153,11 +183,11 @@ export default function TracksManager({ currentUser }: { currentUser: UserDto })
               required
               value={releaseId} 
               onChange={e => setReleaseId(e.target.value)}
-              className="w-full border-2 border-black p-2 bg-white outline-none focus:bg-black focus:text-white transition-colors cursor-pointer appearance-none"
+              className="w-full border-2 border-black p-2 bg-white outline-none focus:bg-black focus:text-white transition-colors cursor-pointer appearance-none uppercase"
             >
               {myReleases.map(release => (
                 <option key={release.id} value={release.id}>
-                  {release.title} ({release.releaseType})
+                  {release.title}
                 </option>
               ))}
             </select>
@@ -171,7 +201,7 @@ export default function TracksManager({ currentUser }: { currentUser: UserDto })
               required 
               value={trackNumber} 
               onChange={e => setTrackNumber(e.target.value)}
-              className="w-full border-2 border-black p-2 bg-white outline-none focus:bg-black focus:text-white transition-colors"
+              className="w-full border-2 border-black p-2 bg-white outline-none focus:bg-black focus:text-white transition-colors font-black"
             />
           </div>
 
@@ -180,6 +210,8 @@ export default function TracksManager({ currentUser }: { currentUser: UserDto })
             <input 
               type="text" 
               placeholder="03:45"
+              pattern="^\d{1,3}:[0-5]\d$"
+              title="Usa el formato MM:SS. Ejemplo: 03:45"
               value={duration} 
               onChange={e => setDuration(e.target.value)}
               className="w-full border-2 border-black p-2 bg-white outline-none focus:bg-black focus:text-white transition-colors"
@@ -201,7 +233,7 @@ export default function TracksManager({ currentUser }: { currentUser: UserDto })
 
         <button 
           type="submit" 
-          className="mt-6 w-full bg-white text-black border-4 border-black font-black uppercase py-3 hover:bg-black hover:text-white hover:translate-y-1 transition-all cursor-pointer"
+          className="mt-6 w-full bg-black text-white font-black uppercase py-3 hover:translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.5)] transition-all cursor-pointer"
         >
           {isEditing ? '[ GUARDAR CAMBIOS ]' : '[ + GRABAR TRACK ]'}
         </button>
@@ -233,9 +265,9 @@ export default function TracksManager({ currentUser }: { currentUser: UserDto })
                     key={track.id} 
                     className={`border-b-2 border-black hover:bg-gray-100 ${index % 2 === 0 ? 'bg-white' : 'bg-[#f4f4f0]'}`}
                   >
-                    <td className="p-3 border-r-2 border-black font-bold text-center w-12">{track.trackNumber}</td>
-                    <td className="p-3 border-r-2 border-black font-bold">{track.songTitle}</td>
-                    <td className="p-3 border-r-2 border-black text-sm uppercase">{getReleaseName(track.releaseId)}</td>
+                    <td className="p-3 border-r-2 border-black font-black text-center w-12 text-lg">{track.trackNumber}</td>
+                    <td className="p-3 border-r-2 border-black font-bold uppercase">{track.songTitle}</td>
+                    <td className="p-3 border-r-2 border-black text-sm uppercase font-bold text-gray-600">{getReleaseName(track.releaseId)}</td>
                     <td className="p-3 border-r-2 border-black text-sm">{track.duration || '--:--'}</td>
                     <td className="p-3 text-center space-x-2">
                       <button 
@@ -243,15 +275,15 @@ export default function TracksManager({ currentUser }: { currentUser: UserDto })
                           setIsEditing(track);
                           window.scrollTo({ top: 0, behavior: 'smooth' });
                         }}
-                        className="text-xs uppercase font-bold underline hover:bg-black hover:text-white px-1"
+                        className="text-xs uppercase font-bold underline hover:bg-black hover:text-white px-1 cursor-pointer"
                       >
                         Editar
                       </button>
                       <button 
                         onClick={() => handleDelete(track.id)}
-                        className="text-xs uppercase font-bold text-red-600 underline hover:bg-red-600 hover:text-white px-1"
+                        className="text-xs uppercase font-bold text-red-600 underline hover:bg-red-600 hover:text-white px-1 cursor-pointer"
                       >
-                        X
+                        Eliminar
                       </button>
                     </td>
                   </tr>
@@ -261,7 +293,6 @@ export default function TracksManager({ currentUser }: { currentUser: UserDto })
           </div>
         </div>
       )}
-
     </div>
   );
 }

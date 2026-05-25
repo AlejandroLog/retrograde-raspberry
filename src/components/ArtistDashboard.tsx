@@ -3,8 +3,11 @@ import type { UserDto } from '../types/dtos';
 import ReleasesList from './ReleasesList';
 import ArtistProfile from './ArtistProfile';
 import TracksManager from './TracksManager';
+import ArtistSales from './ArtistSales';
+import ArtistMerch from './ArtistMerch';
 
-type ArtistView = 'perfil' | 'lanzamientos' | 'pistas' | 'ventas';
+// Agregamos 'merch' a los tipos válidos
+type ArtistView = 'perfil' | 'merch' | 'lanzamientos' | 'pistas' | 'ventas';
 
 export default function ArtistDashboard({ 
   currentUser, 
@@ -13,7 +16,7 @@ export default function ArtistDashboard({
   currentUser: UserDto;
   onLogout: () => void;
 }) {
-  const [currentView, setCurrentView] = useState<ArtistView>('perfil'); // Cambiado a 'perfil' por defecto
+  const [currentView, setCurrentView] = useState<ArtistView>('perfil');
 
   const getNavClass = (viewName: ArtistView) => {
     const baseClass = "px-4 py-2 font-bold uppercase transition-all cursor-pointer border-2 border-transparent text-left ";
@@ -27,19 +30,14 @@ export default function ArtistDashboard({
     switch (currentView) {
       case 'perfil':
         return <ArtistProfile currentUser={currentUser} onLogout={onLogout} />;
-case 'lanzamientos':
-  return <ReleasesList currentUser={currentUser} />; 
+      case 'merch':
+        return <ArtistMerch currentUser={currentUser} />;
+      case 'lanzamientos':
+        return <ReleasesList currentUser={currentUser} />; 
       case 'pistas':
-     return <TracksManager currentUser={currentUser} />;
+        return <TracksManager currentUser={currentUser} />;
       case 'ventas':
-        return (
-          <div className="border-4 border-black p-8 bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-            <h3 className="text-2xl font-black uppercase tracking-tighter mb-4 border-b-4 border-black pb-2">
-              Mis Ventas
-            </h3>
-            <p className="font-mono">Historial de formatos físicos vendidos.</p>
-          </div>
-        );
+        return <ArtistSales currentUser={currentUser} />;
       default:
         return null;
     }
@@ -63,6 +61,12 @@ case 'lanzamientos':
               className={getNavClass('perfil')}
             >
               Mi Perfil
+            </button>
+            <button 
+              onClick={() => setCurrentView('merch')} 
+              className={getNavClass('merch')}
+            >
+              Mi Merch
             </button>
             <button 
               onClick={() => setCurrentView('lanzamientos')}
