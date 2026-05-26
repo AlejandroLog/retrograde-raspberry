@@ -8,125 +8,67 @@ export default function ReleasesList({ currentUser }: { currentUser: UserDto }) 
   const [releases, setReleases] = useState<ReleaseDto[]>([]);
   const [userArtists, setUserArtists] = useState<ArtistDto[]>([]);
   const [loading, setLoading] = useState(true);
-  
   const [editingRelease, setEditingRelease] = useState<ReleaseDto | null>(null);
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [allReleases, allArtists] = await Promise.all([
-        getReleases(),
-        getArtists()
-      ]);
-
+      const [allReleases, allArtists] = await Promise.all([getReleases(), getArtists()]);
       const myArtists = allArtists.filter(a => a.userId === currentUser.id);
       setUserArtists(myArtists);
       const myArtistIds = myArtists.map(a => a.id);
-
       const myReleases = allReleases.filter(r => myArtistIds.includes(r.artistId));
       setReleases(myReleases);
-
-    } catch (err) {
-      console.error("Error:", err);
-    } finally {
-      setLoading(false);
-    }
+    } catch (err) { console.error("Error:", err); } finally { setLoading(false); }
   };
 
-  useEffect(() => {
-    fetchData();
-  }, [currentUser.id]);
+  useEffect(() => { fetchData(); }, [currentUser.id]);
 
-  const getBandName = (id: number) => {
-    const artist = userArtists.find(a => a.id === id);
-    return artist ? artist.bandName : 'Desconocido';
-  };
+  const getBandName = (id: number) => { const artist = userArtists.find(a => a.id === id); return artist ? artist.bandName : 'Desconocido'; };
 
   const handleDelete = async (id: number) => {
     const confirmDelete = window.confirm("¿Seguro que deseas destruir este lanzamiento? Ya no aparecerá en el catálogo.");
     if (!confirmDelete) return;
-
-    try {
-      await deleteRelease(id, currentUser.username);
-      fetchData(); 
-    } catch (err: any) {
-      alert("Error al eliminar: " + err.message);
-    }
+    try { await deleteRelease(id, currentUser.username); fetchData(); } catch (err: any) { alert("Error al eliminar: " + err.message); }
   };
 
-  const handleSaveCompleted = () => {
-    setEditingRelease(null); 
-    fetchData(); 
-  };
+  const handleSaveCompleted = () => { setEditingRelease(null); fetchData(); };
 
   return (
-    <div className="p-4 max-w-4xl mx-auto">
-      
-      <CreateReleaseForm 
-        onReleaseSaved={handleSaveCompleted} 
-        currentUser={currentUser} 
-        releaseToEdit={editingRelease}
-        onCancelEdit={() => setEditingRelease(null)}
-      />
+    <div className="p-4 max-w-4xl mx-auto" style={{animation: 'fadeIn 0.4s ease-out'}}>
+      <CreateReleaseForm onReleaseSaved={handleSaveCompleted} currentUser={currentUser} releaseToEdit={editingRelease} onCancelEdit={() => setEditingRelease(null)} />
 
-      <h2 className="text-3xl font-black uppercase tracking-tighter mb-8 font-mono inline-block bg-black text-white px-2 py-1">
-        CATÁLOGO DE LA BANDA
+      <h2 className="text-2xl font-bold text-slate-100 mb-6 flex items-center gap-3">
+        <span className="w-1 h-6 bg-gradient-to-b from-violet-500 to-cyan-500 rounded-full"></span>
+        Catálogo de la Banda
       </h2>
       
       {loading ? (
-        <p className="font-mono text-xl animate-pulse">Leyendo discos...</p>
+        <div className="flex flex-col items-center justify-center py-20"><div className="w-12 h-12 border-[3px] border-violet-500/30 border-t-violet-500 rounded-full animate-spin mb-4"></div><p className="text-slate-500 text-sm">Leyendo discos...</p></div>
       ) : releases.length === 0 ? (
-        <p className="font-mono text-xl">Sin señales. El catálogo está vacío.</p>
+        <p className="text-slate-500 text-sm">Sin señales. El catálogo está vacío.</p>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 font-mono">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           {releases.map((release) => (
-            <div 
-              key={release.id} 
-              className="border-4 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-1 hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all overflow-hidden flex flex-col"
-            >
-              <div className="h-48 border-b-4 border-black bg-gray-200 overflow-hidden flex items-center justify-center">
+            <div key={release.id} className="bg-white/[0.04] border border-white/[0.08] rounded-xl overflow-hidden hover:-translate-y-1 hover:border-violet-500/30 hover:shadow-lg hover:shadow-violet-500/10 transition-all duration-300 flex flex-col group">
+              <div className="h-48 bg-white/[0.06] overflow-hidden flex items-center justify-center">
                 {release.coverUrl ? (
-                  <img src={release.coverUrl} alt={`Portada de ${release.title}`} className="w-full h-full object-cover" />
+                  <img src={release.coverUrl} alt={`Portada de ${release.title}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                 ) : (
-                  <span className="text-gray-400 font-bold tracking-widest uppercase">SIN PORTADA</span>
+                  <span className="text-slate-600 text-sm">SIN PORTADA</span>
                 )}
               </div>
-              
               <div className="p-5 flex-grow">
-                <h3 className="font-black text-xl uppercase tracking-tighter mb-1 break-words">
-                  {release.title}
-                </h3>
-                <p className="text-sm font-bold uppercase mb-4 text-gray-600">
-                  {getBandName(release.artistId)}
-                </p>
-                
-                <div className="border-t-2 border-black pt-2 mb-4">
-                  <p className="text-sm font-bold uppercase">Formato: <span className="font-normal">{release.releaseType}</span></p>
-                  {release.releaseDate && (
-                    <p className="text-sm font-bold uppercase">
-                      Lanzamiento: <span className="font-normal">{new Date(release.releaseDate).toLocaleDateString()}</span>
-                    </p>
-                  )}
+                <h3 className="font-bold text-lg text-slate-100 mb-1 break-words">{release.title}</h3>
+                <p className="text-sm text-slate-500 mb-4">{getBandName(release.artistId)}</p>
+                <div className="border-t border-white/[0.06] pt-3 mb-4">
+                  <p className="text-sm text-slate-400">Formato: <span className="text-slate-300">{release.releaseType}</span></p>
+                  {release.releaseDate && (<p className="text-sm text-slate-400">Lanzamiento: <span className="text-slate-300">{new Date(release.releaseDate).toLocaleDateString()}</span></p>)}
                 </div>
-
-                <div className="flex gap-2 border-t-2 border-black border-dashed pt-4 mt-auto">
-                  <button 
-                    onClick={() => {
-                      setEditingRelease(release);
-                      window.scrollTo({ top: 0, behavior: 'smooth' }); // Sube la pantalla al formulario
-                    }}
-                    className="flex-1 border-2 border-black bg-white text-black font-bold uppercase text-xs py-2 hover:bg-black hover:text-white transition-colors"
-                  >
-                    Editar
-                  </button>
-                  <button 
-                    onClick={() => handleDelete(release.id)}
-                    className="flex-1 border-2 border-red-600 bg-white text-red-600 font-bold uppercase text-xs py-2 hover:bg-red-600 hover:text-white transition-colors"
-                  >
-                    Eliminar
-                  </button>
+                <div className="flex gap-2 mt-auto">
+                  <button onClick={() => { setEditingRelease(release); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="flex-1 border border-white/10 bg-white/[0.04] text-slate-300 font-medium text-xs py-2 rounded-lg hover:bg-white/[0.1] hover:text-white transition-all cursor-pointer">Editar</button>
+                  <button onClick={() => handleDelete(release.id)} className="flex-1 border border-red-500/20 bg-red-500/5 text-red-400 font-medium text-xs py-2 rounded-lg hover:bg-red-500/20 transition-all cursor-pointer">Eliminar</button>
                 </div>
-
               </div>
             </div>
           ))}

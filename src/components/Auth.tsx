@@ -35,103 +35,118 @@ export default function Auth({ onLogin }: { onLogin: (user: UserDto) => void }) 
   };
 
   return (
-    /* Fondo de pantalla adaptado al Dark Mode ciberpunk (#0d0e12) */
-    <div className="flex flex-col items-center justify-center min-h-[90vh] font-mono p-4 bg-[#0d0e12]">
-      
-      {/* neo-card ahora renderiza automáticamente el fondo #161920 definido en tu global.css */}
-      <div className="w-full max-w-md neo-card p-8">
-        
-        {/* Encabezado con bordes y textos optimizados para contraste oscuro */}
-        <h2 className="text-3xl font-black uppercase tracking-tighter mb-6 border-b-4 border-black pb-3 flex justify-between items-center text-white">
-          <span>{isLoginView ? '✨ ACCESO' : '🔥 NUEVO RECLUTA'}</span>
-          <span className="text-xs bg-[#CCFF00] text-black px-2 py-0.5 font-bold tracking-normal normal-case">v1.0.0</span>
-        </h2>
-
-        {error && (
-          <div className="bg-[#FF6B6B] text-black border-2 border-black p-3 mb-6 font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center gap-2">
-            <span>⚠️</span>
-            <span className="text-sm uppercase tracking-wide">{error}</span>
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            {/* Etiquetas cambiadas a texto blanco para legibilidad */}
-            <label className="block text-sm font-black uppercase text-white mb-1.5 tracking-wide">[ USUARIO ]</label>
-            <input 
-              type="text" 
-              required 
-              value={username} 
-              onChange={e => setUsername(e.target.value)}
-              placeholder="tu_nombre_de_artista"
-              className="neo-input"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-black uppercase text-white mb-1.5 tracking-wide">[ CONTRASEÑA ]</label>
-            <input 
-              type="password" 
-              required 
-              value={password} 
-              onChange={e => setPassword(e.target.value)}
-              placeholder="••••••••"
-              className="neo-input"
-            />
-          </div>
-
-          {!isLoginView && (
-            <div>
-              <label className="block text-sm font-black uppercase text-white mb-1.5 tracking-wide">[ TIPO DE CUENTA ]</label>
-              <div className="relative shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                {/* Select oscuro adaptado para que coincida con las cajas de input */}
-                <select 
-                  value={role} 
-                  onChange={e => setRole(e.target.value)}
-                  className="w-full border-[3px] border-black p-3 bg-[#1f232b] text-white font-black uppercase appearance-none cursor-pointer focus:outline-none focus:bg-[#CCFF00] focus:text-black"
-                >
-                  <option value="cliente" className="bg-[#1f232b] text-white">Fan / Cliente</option>
-                  <option value="artista" className="bg-[#1f232b] text-white">Músico / Artista</option>
-                </select>
-                {/* Flecha lateral adaptada visualmente al nuevo fondo del select */}
-                <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none border-l-[3px] border-black bg-[#1f232b] text-white font-black text-sm peer-focus:bg-[#CCFF00] peer-focus:text-black">
-                  ▼
-                </div>
-              </div>
+    <div className="flex min-h-screen bg-[#0a0a0f] text-slate-200" style={{animation: 'fadeIn 0.5s ease-out'}}>
+      {/* Left side: Image Banner */}
+      <div className="hidden lg:flex w-1/2 relative">
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#0a0a0f]/50 to-[#0a0a0f] z-10 pointer-events-none"></div>
+        <img src="/assets/turntable.png" alt="Vinyl Turntable" className="object-cover w-full h-full opacity-80" />
+        <div className="absolute bottom-16 left-16 z-20 max-w-lg">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-full bg-violet-500/20 flex items-center justify-center border border-violet-500/30 shadow-[0_0_15px_rgba(139,92,246,0.3)]">
+              <div className="w-3 h-3 rounded-full bg-cyan-400"></div>
             </div>
-          )}
-
-          <button 
-            type="submit" 
-            disabled={loading}
-            className="w-full neo-btn-primary"
-          >
-            {loading ? 'PROCESANDO...' : isLoginView ? 'ENTRAR AL PANEL →' : 'CREAR MI CUENTA +'}
-          </button>
-        </form>
-
-        {/* Footer con divisor discontinuo negro y textos secundarios suavizados en gris */}
-        <div className="mt-8 pt-5 border-t-[3px] border-dashed border-black text-center">
-          <p className="text-xs font-bold uppercase text-gray-400 mb-2">
-            {isLoginView ? '¿No tienes código de acceso?' : '¿Ya eres del crew?'}
+            <span className="font-bold text-2xl tracking-tight text-white drop-shadow-md">Sonic Fock</span>
+          </div>
+          <h1 className="text-4xl lg:text-5xl font-bold text-white mb-6 leading-tight drop-shadow-lg">
+            La Experiencia <br /><span className="gradient-text drop-shadow-none">Física</span> de la Música.
+          </h1>
+          <p className="text-slate-300 text-lg leading-relaxed drop-shadow-md font-medium">
+            Plataforma premium para la distribución, manufactura y venta de vinilos, casetes y mercancía exclusiva para sellos y artistas independientes.
           </p>
-          {/* Botón secundario con inversión de colores ideal para el modo oscuro */}
-          <button 
-            type="button"
-            onClick={() => {
-              setIsLoginView(!isLoginView);
-              setError('');
-            }}
-            className="inline-block bg-[#1f232b] text-white border-2 border-black font-black uppercase px-4 py-1.5 text-xs tracking-wider
-                       shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]
-                       hover:bg-white hover:text-black hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
-                       active:translate-x-[3px] active:translate-y-[3px] active:shadow-none
-                       transition-all cursor-pointer"
-          >
-            {isLoginView ? 'Crear Cuenta' : 'Iniciar Sesión'}
-          </button>
         </div>
+      </div>
+      
+      {/* Right side: Form */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 relative z-20">
+        <div className="w-full max-w-md">
+          
+          <div className="lg:hidden flex items-center gap-3 mb-10 justify-center">
+            <div className="w-8 h-8 rounded-full bg-violet-500/20 flex items-center justify-center border border-violet-500/30">
+              <div className="w-2.5 h-2.5 rounded-full bg-cyan-400"></div>
+            </div>
+            <span className="font-bold text-xl tracking-tight text-white">Sonic Fock</span>
+          </div>
 
+          <div className="neo-card p-8 bg-white/[0.02]">
+            <h2 className="text-3xl font-bold uppercase tracking-tight mb-6 border-b border-white/10 pb-4 flex justify-between items-center text-slate-100">
+              <span className="gradient-text">{isLoginView ? 'Acceso' : 'Nuevo Recluta'}</span>
+              <span className="text-[10px] bg-violet-500/20 text-violet-300 px-2.5 py-1 rounded-full font-medium tracking-normal normal-case border border-violet-500/20">v1.0.0</span>
+            </h2>
+
+            {error && (
+              <div className="bg-red-500/10 text-red-400 border border-red-500/20 p-3 mb-6 font-medium rounded-lg flex items-center gap-2 text-sm">
+                <span>⚠️</span>
+                <span>{error}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div>
+                <label className="block text-xs font-semibold uppercase text-slate-400 mb-2 tracking-wider">Usuario / Proyecto</label>
+                <input 
+                  type="text" 
+                  required 
+                  value={username} 
+                  onChange={e => setUsername(e.target.value)}
+                  placeholder="nombre_proyecto"
+                  className="neo-input"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold uppercase text-slate-400 mb-2 tracking-wider">Contraseña</label>
+                <input 
+                  type="password" 
+                  required 
+                  value={password} 
+                  onChange={e => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="neo-input"
+                />
+              </div>
+
+              {!isLoginView && (
+                <div>
+                  <label className="block text-xs font-semibold uppercase text-slate-400 mb-2 tracking-wider">Perfil</label>
+                  <select 
+                    value={role} 
+                    onChange={e => setRole(e.target.value)}
+                    className="neo-input appearance-none cursor-pointer"
+                  >
+                    <option value="cliente">Coleccionista / Fan</option>
+                    <option value="artista">Músico / Sello</option>
+                  </select>
+                </div>
+              )}
+
+              <button 
+                type="submit" 
+                disabled={loading}
+                className="w-full neo-btn-primary mt-4"
+              >
+                {loading ? 'PROCESANDO...' : isLoginView ? 'ENTRAR AL PANEL →' : 'CREAR MI CUENTA +'}
+              </button>
+            </form>
+
+            <div className="mt-8 pt-5 border-t border-white/10 text-center">
+              <p className="text-xs font-medium text-slate-500 mb-3">
+                {isLoginView ? '¿Aún no coleccionas con nosotros?' : '¿Ya eres parte de la distribuidora?'}
+              </p>
+              <button 
+                type="button"
+                onClick={() => {
+                  setIsLoginView(!isLoginView);
+                  setError('');
+                }}
+                className="inline-block bg-white/[0.06] text-slate-300 border border-white/10 font-semibold px-5 py-2 text-xs tracking-wider rounded-lg
+                           hover:bg-white/[0.12] hover:text-white hover:border-white/20
+                           transition-all duration-300 cursor-pointer uppercase"
+              >
+                {isLoginView ? 'Solicitar Ingreso' : 'Iniciar Sesión'}
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

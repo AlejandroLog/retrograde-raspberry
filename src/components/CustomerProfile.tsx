@@ -30,22 +30,22 @@ export default function CustomerProfile({ currentUser, onLogout }: { currentUser
   };
 
   return (
-    <div className="max-w-md mx-auto border-4 border-black p-6 bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] font-mono mt-8">
-      <h3 className="text-2xl font-black uppercase tracking-tighter mb-6 border-b-4 border-black pb-2">Datos del Fan</h3>
-      {message && <div className="bg-black text-white p-2 mb-4 font-bold">{message}</div>}
+    <div className="max-w-md mx-auto bg-white/[0.04] border border-white/10 rounded-xl p-6 mt-8" style={{animation: 'fadeIn 0.4s ease-out'}}>
+      <h3 className="text-xl font-bold text-slate-100 mb-6 pb-4 border-b border-white/[0.08]">Datos del Fan</h3>
+      {message && <div className={`p-3 mb-4 font-medium text-sm rounded-lg ${message.includes('[OK]') ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400' : 'bg-red-500/10 border border-red-500/20 text-red-400'}`}>{message}</div>}
       <form onSubmit={handleUpdate} className="space-y-4">
         <div>
-          <label className="block text-sm font-bold uppercase mb-1">Usuario</label>
-          <input type="text" required value={username} onChange={e => setUsername(e.target.value)} className="w-full border-2 border-black p-2 outline-none focus:bg-black focus:text-white" />
+          <label className="block text-xs font-semibold uppercase text-slate-400 mb-2 tracking-wider">Usuario</label>
+          <input type="text" required value={username} onChange={e => setUsername(e.target.value)} className="w-full bg-white/[0.04] border border-white/10 rounded-lg p-2.5 text-slate-100 outline-none focus:border-violet-500/50 focus:shadow-[0_0_0_3px_rgba(139,92,246,0.1)] transition-all text-sm" />
         </div>
         <div>
-          <label className="block text-sm font-bold uppercase mb-1">Nueva Contraseña</label>
-          <input type="password" required value={password} onChange={e => setPassword(e.target.value)} className="w-full border-2 border-black p-2 outline-none focus:bg-black focus:text-white" />
+          <label className="block text-xs font-semibold uppercase text-slate-400 mb-2 tracking-wider">Nueva Contraseña</label>
+          <input type="password" required value={password} onChange={e => setPassword(e.target.value)} className="w-full bg-white/[0.04] border border-white/10 rounded-lg p-2.5 text-slate-100 outline-none focus:border-violet-500/50 focus:shadow-[0_0_0_3px_rgba(139,92,246,0.1)] transition-all text-sm" />
         </div>
-        <button type="submit" className="w-full bg-white text-black border-4 border-black font-black uppercase py-2 hover:bg-black hover:text-white cursor-pointer transition-colors">[ ACTUALIZAR ]</button>
+        <button type="submit" className="w-full neo-btn-primary">Actualizar</button>
       </form>
-      <div className="mt-8 pt-4 border-t-4 border-black border-dashed text-center">
-        <button onClick={handleDelete} className="text-red-600 font-bold underline hover:bg-red-600 hover:text-white px-2">Eliminar Cuenta</button>
+      <div className="mt-8 pt-4 border-t border-white/[0.08] text-center">
+        <button onClick={handleDelete} className="text-red-400 font-medium text-sm hover:bg-red-500/10 px-3 py-1.5 rounded-lg transition-colors cursor-pointer">Eliminar Cuenta</button>
       </div>
     </div>
   );

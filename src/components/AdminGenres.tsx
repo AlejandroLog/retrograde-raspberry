@@ -1,173 +1,90 @@
 import { useState, useEffect } from 'react';
-import type { MusicalGenreDto, UserDto } from '../types/dtos';
+import type { MusicalGenreDto } from '../types/dtos';
 import { getMusicalGenres, createMusicalGenre, updateMusicalGenre, deleteMusicalGenre } from '../api/genreService';
 
-export default function AdminGenres({ currentUser }: { currentUser: UserDto }) {
+export default function AdminGenres() {
   const [genres, setGenres] = useState<MusicalGenreDto[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState('');
-
-  // Estados del Formulario (Sirve para crear y editar)
-  const [isEditing, setIsEditing] = useState<MusicalGenreDto | null>(null);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [isEditing, setIsEditing] = useState<MusicalGenreDto | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const loadGenres = async () => {
+  const loadData = async () => {
     setLoading(true);
-    try {
-      const data = await getMusicalGenres();
-      setGenres(data);
-    } catch (err: any) {
-      console.error(err);
-      setMessage('[!] Error al cargar géneros: ' + err.message);
-    } finally {
-      setLoading(false);
-    }
+    try { const data = await getMusicalGenres(); setGenres(data); } catch (err) { console.error(err); } finally { setLoading(false); }
   };
 
-  useEffect(() => {
-    loadGenres();
-  }, []);
+  useEffect(() => { loadData(); }, []);
 
-  // Detectar si hacemos clic en editar para rellenar los inputs
   useEffect(() => {
-    if (isEditing) {
-      setName(isEditing.name);
-      setDescription(isEditing.description || '');
-    } else {
-      setName('');
-      setDescription('');
-    }
+    if (isEditing) { setName(isEditing.name); setDescription(isEditing.description || ''); } else { setName(''); setDescription(''); }
   }, [isEditing]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setMessage('');
     try {
-      const genreData = { name, description: description || undefined };
-
-      if (isEditing) {
-        await updateMusicalGenre(isEditing.id, genreData);
-        setMessage(`[OK] Género "${name}" actualizado con éxito.`);
-        setIsEditing(null);
-      } else {
-        await createMusicalGenre(genreData);
-        setMessage(`[OK] Género "${name}" registrado correctamente.`);
-      }
-
-      loadGenres();
-    } catch (err: any) {
-      alert("Error al guardar: " + err.message);
-    }
+      const data = { name, description: description || undefined };
+      if (isEditing) { await updateMusicalGenre(isEditing.id, data); } else { await createMusicalGenre(data); }
+      setIsEditing(null); loadData(); alert("Catálogo de géneros actualizado.");
+    } catch (err: any) { alert("Error: " + err.message); }
   };
 
-  const handleDelete = async (genre: MusicalGenreDto) => {
-    const confirmDelete = window.confirm(`¿Seguro que deseas eliminar el género "${genre.name}"? Los artistas vinculados conservarán su ID pero el género ya no aparecerá en los catálogos.`);
-    if (!confirmDelete) return;
-
-    try {
-      await deleteMusicalGenre(genre.id, currentUser.username);
-      setMessage(`[OK] Género "${genre.name}" dado de baja.`);
-      loadGenres();
-    } catch (err: any) {
-      alert("Error al eliminar: " + err.message);
-    }
+  const handleDelete = async (id: number) => {
+    if(!window.confirm("¿Seguro que deseas eliminar este género musical? Podría afectar a artistas vinculados.")) return;
+    try { await deleteMusicalGenre(id); loadData(); } catch (err: any) { alert("Error: " + err.message); }
   };
 
-  if (loading) return <p className="animate-pulse font-mono p-8">Sincronizando enciclopedias musicales...</p>;
+  if (loading) return (<div className="flex flex-col items-center justify-center py-20"><div className="w-12 h-12 border-[3px] border-violet-500/30 border-t-violet-500 rounded-full animate-spin mb-4"></div></div>);
 
   return (
-    <div className="font-mono mt-8 max-w-4xl">
-      
-      {message && (
-        <div className={`p-3 mb-6 font-bold text-white border-2 border-black ${message.includes('[OK]') ? 'bg-green-600' : 'bg-black animate-pulse'}`}>
-          {message}
-        </div>
-      )}
-
-      {/* FORMULARIO DE REGISTRO / EDICIÓN */}
-      <form onSubmit={handleSubmit} className={`border-4 border-black p-6 bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] mb-12 ${isEditing ? 'ring-4 ring-yellow-400' : ''}`}>
-        <div className="flex justify-between items-center mb-6 border-b-4 border-black pb-2">
-          <h3 className="text-2xl font-black uppercase tracking-tighter">
-            {isEditing ? 'EDITANDO GÉNERO DE MÚSICA' : 'NUEVA CORRIENTE SONORA'}
-          </h3>
-          {isEditing && (
-            <button 
-              type="button" 
-              onClick={() => setIsEditing(null)} 
-              className="bg-black text-white px-3 py-1 font-bold text-sm uppercase hover:bg-red-600 cursor-pointer"
-            >
-              Cancelar
-            </button>
-          )}
-        </div>
-
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-bold uppercase mb-1">Nombre de la Corriente o Género</label>
-            <input 
-              type="text" required placeholder="Ej. Heavy Metal, Dream Pop, Cyberpunk" value={name} onChange={e => setName(e.target.value)}
-              className="w-full border-2 border-black p-2 bg-white outline-none focus:bg-black focus:text-white transition-colors"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-bold uppercase mb-1">Breve Descripción / Manifiesto</label>
-            <textarea 
-              rows={2} placeholder="Ej. Guitarras distorsionadas, atmósferas oscuras, tempos acelerados..." value={description} onChange={e => setDescription(e.target.value)}
-              className="w-full border-2 border-black p-2 bg-white outline-none focus:bg-black focus:text-white transition-colors resize-none"
-            />
-          </div>
-        </div>
-
-        <button type="submit" className="mt-6 w-full bg-black text-white font-black uppercase py-3 hover:translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.5)] transition-all cursor-pointer">
-          {isEditing ? '[ SALVAGUARDAR CAMBIOS ]' : '[ + DEPOSITAR EN BASE DE DATOS ]'}
-        </button>
-      </form>
-
-      <h2 className="text-3xl font-black uppercase tracking-tighter mb-6 inline-block bg-black text-white px-2 py-1">
-        BIBLIOTECA DE ESTILOS
+    <div style={{animation: 'fadeIn 0.4s ease-out'}}>
+      <h2 className="text-2xl font-bold text-slate-100 mb-6 flex items-center gap-3">
+        <span className="w-1 h-6 bg-gradient-to-b from-violet-500 to-cyan-500 rounded-full"></span>
+        Taxonomía de Géneros Musicales
       </h2>
 
-      {genres.length === 0 ? (
-        <p>No hay géneros musicales guardados en el archivo.</p>
-      ) : (
-        <div className="border-4 border-black bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-black text-white uppercase text-sm">
-                <th className="p-3 border-r-2 border-white w-16 text-center">ID</th>
-                <th className="p-3 border-r-2 border-white w-48">Género</th>
-                <th className="p-3 border-r-2 border-white">Descripción</th>
-                <th className="p-3 text-center">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {genres.map((genre, idx) => (
-                <tr key={genre.id} className={`border-b-2 border-black hover:bg-gray-100 ${idx % 2 === 0 ? 'bg-white' : 'bg-[#f4f4f0]'}`}>
-                  <td className="p-3 border-r-2 border-black text-center font-bold text-lg">{genre.id}</td>
-                  <td className="p-3 border-r-2 border-black font-black uppercase tracking-tight">{genre.name}</td>
-                  <td className="p-3 border-r-2 border-black text-xs font-mono text-gray-700 italic">{genre.description || 'Sin descripción asignada.'}</td>
-                  <td className="p-3 text-center space-x-3 w-40">
-                    <button 
-                      onClick={() => { setIsEditing(genre); setMessage(''); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                      className="text-xs font-bold uppercase underline hover:bg-black hover:text-white px-1 cursor-pointer"
-                    >
-                      Editar
-                    </button>
-                    <button 
-                      onClick={() => handleDelete(genre)}
-                      className="text-xs font-bold uppercase text-red-600 underline hover:bg-red-600 hover:text-white px-1 cursor-pointer"
-                    >
-                      Eliminar
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      <form onSubmit={handleSubmit} className={`bg-white/[0.04] border border-white/10 rounded-xl p-6 mb-8 max-w-3xl ${isEditing ? 'ring-1 ring-violet-500/30' : ''}`}>
+        <div className="flex justify-between items-center mb-6 pb-4 border-b border-white/[0.08]">
+          <h3 className="text-lg font-bold text-slate-100">{isEditing ? 'Modificando Género' : 'Registrar Nuevo Género'}</h3>
+          {isEditing && (<button type="button" onClick={() => setIsEditing(null)} className="text-xs font-medium text-red-400 hover:bg-red-500/10 px-3 py-1.5 rounded-lg transition-colors cursor-pointer">Cancelar Edición</button>)}
         </div>
-      )}
+
+        <div className="grid grid-cols-1 gap-4">
+          <div>
+            <label className="block text-xs font-semibold uppercase text-slate-400 mb-2 tracking-wider">Etiqueta del Género</label>
+            <input type="text" required placeholder="Ej. Shoegaze" value={name} onChange={e => setName(e.target.value)} className="w-full bg-white/[0.04] border border-white/10 rounded-lg p-2.5 text-slate-100 outline-none focus:border-violet-500/50 transition-all text-sm" />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold uppercase text-slate-400 mb-2 tracking-wider">Descripción Breve (Opcional)</label>
+            <input type="text" placeholder="Características sonoras..." value={description} onChange={e => setDescription(e.target.value)} className="w-full bg-white/[0.04] border border-white/10 rounded-lg p-2.5 text-slate-100 outline-none focus:border-violet-500/50 transition-all text-sm" />
+          </div>
+        </div>
+        <button type="submit" className="mt-6 w-full neo-btn-primary">{isEditing ? 'Actualizar Género' : '+ Añadir a la Base'}</button>
+      </form>
+
+      <div className="bg-white/[0.04] border border-white/10 rounded-xl overflow-hidden max-w-3xl">
+        <table className="w-full text-left border-collapse">
+          <thead>
+            <tr className="bg-white/[0.08]">
+              <th className="p-4 text-xs font-semibold uppercase text-slate-400 tracking-wider">Género</th>
+              <th className="p-4 text-xs font-semibold uppercase text-slate-400 tracking-wider">Descripción</th>
+              <th className="p-4 text-xs font-semibold uppercase text-slate-400 tracking-wider text-center w-32">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {genres.map((g, idx) => (
+              <tr key={g.id} className={`border-b border-white/[0.06] hover:bg-white/[0.04] transition-colors ${idx % 2 !== 0 ? 'bg-white/[0.02]' : ''}`}>
+                <td className="p-4 font-bold text-slate-200 text-sm">{g.name}</td>
+                <td className="p-4 text-sm text-slate-400">{g.description || <span className="italic text-slate-600">Sin descripción</span>}</td>
+                <td className="p-4 text-center space-x-2">
+                  <button onClick={() => { setIsEditing(g); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="text-xs font-medium text-violet-400 hover:text-violet-300 px-2 py-1 rounded hover:bg-violet-500/10 transition-colors cursor-pointer">Editar</button>
+                  <button onClick={() => handleDelete(g.id)} className="text-xs font-medium text-red-400 hover:text-red-300 px-2 py-1 rounded hover:bg-red-500/10 transition-colors cursor-pointer">Eliminar</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

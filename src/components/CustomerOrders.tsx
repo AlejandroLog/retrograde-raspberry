@@ -8,7 +8,6 @@ export default function CustomerOrders({ currentUser }: { currentUser: UserDto }
   const [mySales, setMySales] = useState<SaleDto[]>([]);
   const [saleDetails, setSaleDetails] = useState<SaleDetailDto[]>([]);
   
-  // Estados para resolución de nombres
   const [inventory, setInventory] = useState<InventoryDto[]>([]);
   const [releases, setReleases] = useState<ReleaseDto[]>([]);
   const [formats, setFormats] = useState<PhysicalFormatDto[]>([]);
@@ -26,7 +25,6 @@ export default function CustomerOrders({ currentUser }: { currentUser: UserDto }
         getAllSales(), getAllSaleDetails(), getAllInventory(), getReleases(), getPhysicalFormats(), getMerch()
       ]);
 
-      // Filtrar únicamente las ventas que pertenecen a este cliente
       const clientSales = salesData
         .filter(s => s.customerEmail.toLowerCase() === currentUser.username.toLowerCase())
         .sort((a, b) => new Date(b.saleDate).getTime() - new Date(a.saleDate).getTime());
@@ -64,11 +62,9 @@ export default function CustomerOrders({ currentUser }: { currentUser: UserDto }
     const inv = inventory.find(i => i.id === invId);
     if (!inv) return 'Artículo del catálogo';
 
-    // Resolver si el SKU pertenece a Merch
     const itemMerch = merch.find(m => m.sku === inv.sku);
     if (itemMerch) return `${itemMerch.name} (${itemMerch.type})`;
 
-    // Resolver si pertenece a un Lanzamiento Musical
     const release = releases.find(r => r.id === inv.releaseId);
     const format = formats.find(f => f.id === inv.physicalFormatId);
     
@@ -77,36 +73,41 @@ export default function CustomerOrders({ currentUser }: { currentUser: UserDto }
 
   const getSaleDetails = (saleId: number) => saleDetails.filter(sd => sd.saleId === saleId);
 
-  if (loading) return <p className="font-mono animate-pulse p-8">Sincronizando recibos de compra...</p>;
+  if (loading) return (
+    <div className="flex flex-col items-center justify-center py-20">
+      <div className="w-12 h-12 border-[3px] border-violet-500/30 border-t-violet-500 rounded-full animate-spin mb-4"></div>
+      <p className="text-slate-500 text-sm">Sincronizando recibos de compra...</p>
+    </div>
+  );
 
   return (
-    <div className="font-mono mt-8 max-w-4xl">
-      <h2 className="text-3xl font-black uppercase mb-6 inline-block bg-black text-white px-2 py-0.5">
-        HISTORIAL DE COMPRAS
+    <div className="mt-8 max-w-4xl" style={{animation: 'fadeIn 0.4s ease-out'}}>
+      <h2 className="text-2xl font-bold text-slate-100 mb-6 flex items-center gap-3">
+        <span className="w-1 h-6 bg-gradient-to-b from-violet-500 to-cyan-500 rounded-full"></span>
+        Historial de Compras
       </h2>
 
-      {/* DETALLE EXPANDIDO DEL TICKET */}
       {selectedSale && (
-        <div className="border-4 border-black p-6 bg-yellow-100 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] mb-8 ring-4 ring-black">
-          <div className="flex justify-between items-start border-b-4 border-black pb-3 mb-4">
+        <div className="bg-white/[0.06] border border-white/10 rounded-xl p-6 mb-8" style={{animation: 'slideUp 0.3s ease-out'}}>
+          <div className="flex justify-between items-start border-b border-white/[0.08] pb-3 mb-4">
             <div>
-              <h3 className="text-xl font-black">ORDEN DE COMPRA #{selectedSale.id}</h3>
-              <p className="text-xs font-bold text-gray-600">Fecha: {new Date(selectedSale.saleDate).toLocaleString('es-MX')}</p>
-              <p className="text-xs font-bold text-gray-600">Estado de Envío: {selectedSale.status}</p>
+              <h3 className="text-xl font-bold text-slate-100">Orden de Compra #{selectedSale.id}</h3>
+              <p className="text-xs text-slate-500 mt-1">Fecha: {new Date(selectedSale.saleDate).toLocaleString('es-MX')}</p>
+              <p className="text-xs text-slate-500">Estado: {selectedSale.status}</p>
             </div>
-            <button onClick={() => setSelectedSale(null)} className="bg-black text-white px-2 py-1 text-xs font-bold uppercase hover:bg-red-600 cursor-pointer">
-              [ Cerrar ]
+            <button onClick={() => setSelectedSale(null)} className="text-slate-400 hover:text-white bg-white/[0.06] hover:bg-white/[0.1] px-3 py-1.5 text-xs font-medium rounded-lg transition-all cursor-pointer">
+              Cerrar
             </button>
           </div>
 
-          <ul className="divide-y-2 border-black border-2 border-black bg-white mb-4">
+          <ul className="divide-y divide-white/[0.06] bg-white/[0.03] rounded-lg mb-4">
             {getSaleDetails(selectedSale.id).map(detail => (
               <li key={detail.id} className="p-3 flex justify-between items-center text-sm">
                 <div>
-                  <p className="font-black uppercase">{getItemName(detail.inventoryId)}</p>
-                  <p className="text-xs text-gray-500 font-bold">Precio Unitario: ${detail.unitPrice} MXN</p>
+                  <p className="font-semibold text-slate-200">{getItemName(detail.inventoryId)}</p>
+                  <p className="text-xs text-slate-500">Precio Unitario: ${detail.unitPrice} MXN</p>
                 </div>
-                <div className="font-black">
+                <div className="font-bold text-slate-100">
                   {detail.quantity} u. — ${detail.quantity * detail.unitPrice}
                 </div>
               </li>
@@ -116,53 +117,52 @@ export default function CustomerOrders({ currentUser }: { currentUser: UserDto }
           <div className="flex justify-between items-center pt-2">
             <button 
               onClick={() => handleCancelOrder(selectedSale.id)}
-              className="bg-red-200 border-2 border-red-700 text-red-700 font-bold text-xs uppercase px-3 py-1.5 hover:bg-red-700 hover:text-white transition-colors cursor-pointer"
+              className="bg-red-500/10 text-red-400 border border-red-500/20 font-medium text-xs uppercase px-3 py-1.5 rounded-lg hover:bg-red-500/20 transition-colors cursor-pointer"
             >
               Cancelar Pedido
             </button>
-            <p className="text-xl font-black">
-              Total: <span className="bg-white border-2 border-black px-2 py-0.5">${selectedSale.totalAmount} MXN</span>
+            <p className="text-lg font-bold text-slate-100">
+              Total: <span className="gradient-text">${selectedSale.totalAmount} MXN</span>
             </p>
           </div>
         </div>
       )}
 
-      {/* TABLA PRINCIPAL DE RECIBOS */}
       {mySales.length === 0 ? (
-        <p className="p-6 border-4 border-black border-dashed text-center font-bold">Aún no has realizado transacciones en la plataforma.</p>
+        <p className="border border-dashed border-white/10 rounded-xl p-8 text-center text-slate-500 text-sm">Aún no has realizado transacciones en la plataforma.</p>
       ) : (
-        <div className="border-4 border-black bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
+        <div className="bg-white/[0.04] border border-white/10 rounded-xl overflow-hidden">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-black text-white uppercase text-xs font-bold">
-                <th className="p-3 text-center w-20">Ticket</th>
-                <th className="p-3">Fecha</th>
-                <th className="p-3 text-center">Estado</th>
-                <th className="p-3 text-right">Monto</th>
-                <th className="p-3 text-center">Acción</th>
+              <tr className="bg-white/[0.08]">
+                <th className="p-4 text-xs font-semibold uppercase text-slate-400 tracking-wider text-center w-20">Ticket</th>
+                <th className="p-4 text-xs font-semibold uppercase text-slate-400 tracking-wider">Fecha</th>
+                <th className="p-4 text-xs font-semibold uppercase text-slate-400 tracking-wider text-center">Estado</th>
+                <th className="p-4 text-xs font-semibold uppercase text-slate-400 tracking-wider text-right">Monto</th>
+                <th className="p-4 text-xs font-semibold uppercase text-slate-400 tracking-wider text-center">Acción</th>
               </tr>
             </thead>
             <tbody>
               {mySales.map((sale, idx) => (
-                <tr key={sale.id} className={`border-b-2 border-black hover:bg-gray-50 ${idx % 2 === 0 ? 'bg-white' : 'bg-[#f4f4f0]'}`}>
-                  <td className="p-3 text-center font-black">#{sale.id}</td>
-                  <td className="p-3 text-sm font-bold">{new Date(sale.saleDate).toLocaleDateString('es-MX')}</td>
-                  <td className="p-3 text-center">
-                    <span className="bg-green-200 border border-green-700 text-green-700 px-2 py-0.5 text-xs font-black uppercase">
+                <tr key={sale.id} className={`border-b border-white/[0.06] hover:bg-white/[0.04] transition-colors ${idx % 2 !== 0 ? 'bg-white/[0.02]' : ''}`}>
+                  <td className="p-4 text-center font-bold text-sm text-slate-300">#{sale.id}</td>
+                  <td className="p-4 text-sm text-slate-300">{new Date(sale.saleDate).toLocaleDateString('es-MX')}</td>
+                  <td className="p-4 text-center">
+                    <span className="rounded-full px-3 py-1 text-xs font-medium bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">
                       {sale.status}
                     </span>
                   </td>
-                  <td className="p-3 text-right font-black">${sale.totalAmount}</td>
-                  <td className="p-3 text-center space-x-3 text-xs">
+                  <td className="p-4 text-right font-bold text-sm text-slate-200">${sale.totalAmount}</td>
+                  <td className="p-4 text-center space-x-2">
                     <button 
                       onClick={() => { setSelectedSale(sale); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                      className="font-bold underline uppercase hover:bg-black hover:text-white px-1 cursor-pointer"
+                      className="text-xs font-medium text-violet-400 hover:text-violet-300 px-2 py-1 rounded hover:bg-violet-500/10 transition-colors cursor-pointer"
                     >
                       Ver Detalle
                     </button>
                     <button 
                       onClick={() => handleCancelOrder(sale.id)}
-                      className="font-bold text-red-600 underline uppercase hover:bg-red-600 hover:text-white px-1 cursor-pointer"
+                      className="text-xs font-medium text-red-400 hover:text-red-300 px-2 py-1 rounded hover:bg-red-500/10 transition-colors cursor-pointer"
                     >
                       Cancelar
                     </button>

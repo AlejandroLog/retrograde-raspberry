@@ -1,178 +1,123 @@
 import { useState, useEffect } from 'react';
-import type { InventoryDto, ReleaseDto, PhysicalFormatDto, UserDto } from '../types/dtos';
+import type { InventoryDto, ReleaseDto, PhysicalFormatDto } from '../types/dtos';
 import { getAllInventory, createInventory, deleteInventory, getPhysicalFormats } from '../api/shopService';
 import { getReleases } from '../api/releaseService';
 
-export default function AdminInventory({ currentUser }: { currentUser: UserDto }) {
-  const [inventory, setInventory] = useState<InventoryDto[]>([]);
+export default function AdminInventory() {
+  const [inventoryList, setInventoryList] = useState<InventoryDto[]>([]);
   const [releases, setReleases] = useState<ReleaseDto[]>([]);
   const [formats, setFormats] = useState<PhysicalFormatDto[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  // Estados del Formulario
+  
   const [releaseId, setReleaseId] = useState('');
-  const [formatId, setFormatId] = useState('');
+  const [physicalFormatId, setPhysicalFormatId] = useState('');
   const [stock, setStock] = useState('10');
-  const [price, setPrice] = useState('250.00');
-  const [sku, setSku] = useState('');
+  const [salePrice, setSalePrice] = useState('250');
+  
+  const [loading, setLoading] = useState(true);
 
   const loadData = async () => {
     setLoading(true);
     try {
-      const [invData, relData, formData] = await Promise.all([
-        getAllInventory(),
-        getReleases(),
-        getPhysicalFormats()
-      ]);
-      setInventory(invData);
-      setReleases(relData);
-      setFormats(formData);
-
-      if (relData.length > 0 && !releaseId) setReleaseId(relData[0].id.toString());
-      if (formData.length > 0 && !formatId) setFormatId(formData[0].id.toString());
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
+      const [inv, rel, form] = await Promise.all([getAllInventory(), getReleases(), getPhysicalFormats()]);
+      setInventoryList(inv); setReleases(rel); setFormats(form);
+      if (rel.length > 0 && !releaseId) setReleaseId(rel[0].id.toString());
+      if (form.length > 0 && !physicalFormatId) setPhysicalFormatId(form[0].id.toString());
+    } catch (err) { console.error(err); } finally { setLoading(false); }
   };
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  useEffect(() => { loadData(); }, []);
+
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!releaseId || !physicalFormatId) return alert("Faltan datos");
     try {
-      await createInventory({
-        releaseId: parseInt(releaseId),
-        physicalFormatId: parseInt(formatId),
-        availableStock: parseInt(stock),
-        salePrice: parseFloat(price),
-        sku: sku || `SKU-${Date.now()}`
-      });
-      alert('Inventario creado exitosamente');
-      setSku('');
-      loadData();
-    } catch (err: any) {
-      alert("Error: " + err.message);
-    }
+      const data = { releaseId: parseInt(releaseId), physicalFormatId: parseInt(physicalFormatId), stock: parseInt(stock), salePrice: parseFloat(salePrice) };
+      await createInventory(data);
+      setStock('10'); setSalePrice('250'); loadData(); alert("Inventario actualizado.");
+    } catch (err: any) { alert("Error: " + err.message); }
   };
 
   const handleDelete = async (id: number) => {
-    if (!window.confirm("¿Seguro que quieres dar de baja este item del inventario?")) return;
-    try {
-      await deleteInventory(id, currentUser.username);
-      loadData();
-    } catch (err: any) {
-      alert("Error: " + err.message);
-    }
+    if(!window.confirm("¿Eliminar lote de inventario?")) return;
+    try { await deleteInventory(id); loadData(); } catch (err: any) { alert("Error: " + err.message); }
   };
 
   const getReleaseName = (id: number) => releases.find(r => r.id === id)?.title || 'Desconocido';
   const getFormatName = (id: number) => formats.find(f => f.id === id)?.name || 'Desconocido';
 
-  if (loading) return <p className="animate-pulse font-mono p-8">Cargando base de datos logísticas...</p>;
+  if (loading) return (<div className="flex flex-col items-center justify-center py-20"><div className="w-12 h-12 border-[3px] border-violet-500/30 border-t-violet-500 rounded-full animate-spin mb-4"></div><p className="text-slate-500 text-sm font-medium tracking-wider uppercase">Leyendo inventario...</p></div>);
 
   return (
-    <div className="font-mono mt-8">
-      
-      <form onSubmit={handleSubmit} className="border-4 border-black p-6 bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] mb-12">
-        <h3 className="text-2xl font-black uppercase tracking-tighter mb-6 border-b-4 border-black pb-2">
-          NUEVO INGRESO A ALMACÉN
-        </h3>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="md:col-span-2">
-            <label className="block text-sm font-bold uppercase mb-1">Obra / Lanzamiento</label>
-            <select 
-              value={releaseId} onChange={e => setReleaseId(e.target.value)}
-              className="w-full border-2 border-black p-2 outline-none focus:bg-black focus:text-white"
-            >
-              {releases.map(r => <option key={r.id} value={r.id}>{r.title} ({r.releaseType})</option>)}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-bold uppercase mb-1">Formato Físico / Digital</label>
-            <select 
-              value={formatId} onChange={e => setFormatId(e.target.value)}
-              className="w-full border-2 border-black p-2 outline-none focus:bg-black focus:text-white"
-            >
-              {formats.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-bold uppercase mb-1">Stock Disponible</label>
-            <input 
-              type="number" min="0" required value={stock} onChange={e => setStock(e.target.value)}
-              className="w-full border-2 border-black p-2 outline-none focus:bg-black focus:text-white"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-bold uppercase mb-1">Precio de Venta ($)</label>
-            <input 
-              type="number" min="0" step="0.01" required value={price} onChange={e => setPrice(e.target.value)}
-              className="w-full border-2 border-black p-2 outline-none focus:bg-black focus:text-white"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-bold uppercase mb-1">SKU (Código Interno)</label>
-            <input 
-              type="text" placeholder="Auto-generado si vacío" value={sku} onChange={e => setSku(e.target.value)}
-              className="w-full border-2 border-black p-2 outline-none focus:bg-black focus:text-white"
-            />
-          </div>
-        </div>
-
-        <button type="submit" className="mt-8 w-full bg-black text-white font-black uppercase py-3 hover:translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.5)] transition-all cursor-pointer">
-          [ REGISTRAR EN INVENTARIO ]
-        </button>
-      </form>
-
-      <h2 className="text-3xl font-black uppercase tracking-tighter mb-6 inline-block bg-black text-white px-2 py-1">
-        INVENTARIO ACTIVO
+    <div style={{animation: 'fadeIn 0.4s ease-out'}}>
+      <h2 className="text-2xl font-bold text-slate-100 mb-6 flex items-center gap-3">
+        <span className="w-1 h-6 bg-gradient-to-b from-violet-500 to-cyan-500 rounded-full"></span>
+        Almacén de Obras Físicas
       </h2>
 
-      {inventory.length === 0 ? (
-        <p>No hay artículos en el almacén.</p>
-      ) : (
-        <div className="border-4 border-black bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-black text-white uppercase text-sm">
-                  <th className="p-3 border-r-2 border-white">SKU</th>
-                  <th className="p-3 border-r-2 border-white">Lanzamiento</th>
-                  <th className="p-3 border-r-2 border-white">Formato</th>
-                  <th className="p-3 border-r-2 border-white">Stock</th>
-                  <th className="p-3 border-r-2 border-white">Precio</th>
-                  <th className="p-3 text-center">Baja</th>
-                </tr>
-              </thead>
-              <tbody>
-                {inventory.map((item, idx) => (
-                  <tr key={item.id} className={`border-b-2 border-black hover:bg-gray-100 ${idx % 2 === 0 ? 'bg-white' : 'bg-[#f4f4f0]'}`}>
-                    <td className="p-3 border-r-2 border-black font-bold text-xs">{item.sku}</td>
-                    <td className="p-3 border-r-2 border-black font-bold uppercase">{getReleaseName(item.releaseId)}</td>
-                    <td className="p-3 border-r-2 border-black text-sm">{getFormatName(item.physicalFormatId)}</td>
-                    <td className="p-3 border-r-2 border-black font-bold">{item.availableStock}</td>
-                    <td className="p-3 border-r-2 border-black font-bold">${item.salePrice}</td>
-                    <td className="p-3 text-center">
-                      <button onClick={() => handleDelete(item.id)} className="text-xs font-bold text-red-600 underline hover:bg-red-600 hover:text-white px-2 py-1">
-                        Eliminar
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      <form onSubmit={handleSubmit} className={`bg-white/[0.04] border border-white/10 rounded-xl p-6 mb-8`}>
+        <div className="flex justify-between items-center mb-6 pb-4 border-b border-white/[0.08]">
+          <h3 className="text-lg font-bold text-slate-100">Ingresar Nuevo Lote</h3>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="md:col-span-2">
+            <label className="block text-xs font-semibold uppercase text-slate-400 mb-2 tracking-wider">Obra / Lanzamiento</label>
+            <select required value={releaseId} onChange={e => setReleaseId(e.target.value)} className="w-full bg-white/[0.04] border border-white/10 rounded-lg p-2.5 text-slate-100 outline-none focus:border-violet-500/50 transition-all appearance-none cursor-pointer text-sm">
+              {releases.map(r => (<option key={r.id} value={r.id}>{r.title}</option>))}
+            </select>
+          </div>
+          <div className="md:col-span-2">
+            <label className="block text-xs font-semibold uppercase text-slate-400 mb-2 tracking-wider">Formato Físico</label>
+            <select required value={physicalFormatId} onChange={e => setPhysicalFormatId(e.target.value)} className="w-full bg-white/[0.04] border border-white/10 rounded-lg p-2.5 text-slate-100 outline-none focus:border-violet-500/50 transition-all appearance-none cursor-pointer text-sm">
+              {formats.map(f => (<option key={f.id} value={f.id}>{f.name}</option>))}
+            </select>
+          </div>
+          <div className="md:col-span-2">
+            <label className="block text-xs font-semibold uppercase text-slate-400 mb-2 tracking-wider">Stock (Copias)</label>
+            <input type="number" min="0" required value={stock} onChange={e => setStock(e.target.value)} className="w-full bg-white/[0.04] border border-white/10 rounded-lg p-2.5 text-slate-100 outline-none focus:border-violet-500/50 transition-all text-sm" />
+          </div>
+          <div className="md:col-span-2">
+            <label className="block text-xs font-semibold uppercase text-slate-400 mb-2 tracking-wider">Precio Venta Público ($)</label>
+            <input type="number" min="1" step="0.01" required value={salePrice} onChange={e => setSalePrice(e.target.value)} className="w-full bg-white/[0.04] border border-white/10 rounded-lg p-2.5 text-slate-100 outline-none focus:border-violet-500/50 transition-all text-sm" />
           </div>
         </div>
-      )}
+        <button type="submit" className="mt-6 w-full neo-btn-primary">+ Ingresar al Almacén</button>
+      </form>
+
+      <div className="bg-white/[0.04] border border-white/10 rounded-xl overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-white/[0.08]">
+                <th className="p-4 text-xs font-semibold uppercase text-slate-400 tracking-wider">SKU</th>
+                <th className="p-4 text-xs font-semibold uppercase text-slate-400 tracking-wider">Obra</th>
+                <th className="p-4 text-xs font-semibold uppercase text-slate-400 tracking-wider">Formato</th>
+                <th className="p-4 text-xs font-semibold uppercase text-slate-400 tracking-wider text-center">Stock</th>
+                <th className="p-4 text-xs font-semibold uppercase text-slate-400 tracking-wider text-right">Precio</th>
+                <th className="p-4 text-xs font-semibold uppercase text-slate-400 tracking-wider text-center">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {inventoryList.map((inv, idx) => (
+                <tr key={inv.id} className={`border-b border-white/[0.06] hover:bg-white/[0.04] transition-colors ${idx % 2 !== 0 ? 'bg-white/[0.02]' : ''}`}>
+                  <td className="p-4 font-mono text-xs text-slate-500">{inv.sku}</td>
+                  <td className="p-4 text-sm font-medium text-slate-200">{getReleaseName(inv.releaseId)}</td>
+                  <td className="p-4 text-sm text-slate-400">{getFormatName(inv.physicalFormatId)}</td>
+                  <td className="p-4 text-center">
+                    <span className={`px-2 py-1 rounded text-xs font-bold ${inv.stock < 5 ? 'bg-red-500/20 text-red-400 border border-red-500/20' : 'text-slate-300'}`}>{inv.stock}</span>
+                  </td>
+                  <td className="p-4 text-right font-bold text-emerald-400 text-sm">${inv.salePrice}</td>
+                  <td className="p-4 text-center space-x-2">
+                    <button onClick={() => handleDelete(inv.id)} className="text-xs font-medium text-red-400 hover:text-red-300 px-2 py-1 rounded hover:bg-red-500/10 transition-colors cursor-pointer">Eliminar</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   );
 }

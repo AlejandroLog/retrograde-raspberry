@@ -6,7 +6,6 @@ import TracksManager from './TracksManager';
 import ArtistSales from './ArtistSales';
 import ArtistMerch from './ArtistMerch';
 
-// Agregamos 'merch' a los tipos válidos
 type ArtistView = 'perfil' | 'merch' | 'lanzamientos' | 'pistas' | 'ventas';
 
 export default function ArtistDashboard({ 
@@ -19,11 +18,11 @@ export default function ArtistDashboard({
   const [currentView, setCurrentView] = useState<ArtistView>('perfil');
 
   const getNavClass = (viewName: ArtistView) => {
-    const baseClass = "px-4 py-2 font-bold uppercase transition-all cursor-pointer border-2 border-transparent text-left ";
-    const activeClass = "bg-black text-white border-black translate-y-1 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]";
-    const inactiveClass = "text-black hover:border-black hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]";
+    const base = "px-4 py-2.5 font-medium text-left rounded-lg transition-all duration-300 cursor-pointer text-sm border ";
+    const active = "bg-white/[0.1] text-white shadow-lg shadow-violet-500/5 border-white/10";
+    const inactive = "text-slate-400 hover:text-white hover:bg-white/[0.06] border-transparent";
     
-    return baseClass + (currentView === viewName ? activeClass : inactiveClass);
+    return base + (currentView === viewName ? active : inactive);
   };
 
   const renderContent = () => {
@@ -44,48 +43,23 @@ export default function ArtistDashboard({
   };
 
   return (
-    <div className="font-mono flex flex-col md:flex-row gap-8 pt-8 pb-12">
+    <div className="flex flex-col md:flex-row gap-8 pt-8 pb-12 px-4" style={{animation: 'fadeIn 0.4s ease-out'}}>
       
       <aside className="w-full md:w-64 flex-shrink-0">
-        <div className="flex flex-col gap-4 sticky top-8">
+        <div className="flex flex-col gap-3 sticky top-20">
           <div className="mb-4">
-            <h2 className="text-3xl font-black uppercase tracking-tighter bg-black text-white px-2 py-1 inline-block">
-              PANEL
+            <h2 className="text-2xl font-bold gradient-text">
+              Panel
             </h2>
-            <p className="text-sm font-bold mt-2 truncate">Bienvenido, {currentUser.username}</p>
+            <p className="text-sm text-slate-500 mt-1.5 truncate">Bienvenido, {currentUser.username}</p>
           </div>
 
-          <nav className="flex flex-col gap-3">
-            <button 
-              onClick={() => setCurrentView('perfil')}
-              className={getNavClass('perfil')}
-            >
-              Mi Perfil
-            </button>
-            <button 
-              onClick={() => setCurrentView('merch')} 
-              className={getNavClass('merch')}
-            >
-              Mi Merch
-            </button>
-            <button 
-              onClick={() => setCurrentView('lanzamientos')}
-              className={getNavClass('lanzamientos')}
-            >
-              Lanzamientos
-            </button>
-            <button 
-              onClick={() => setCurrentView('pistas')}
-              className={getNavClass('pistas')}
-            >
-              Pistas (Tracks)
-            </button>
-            <button 
-              onClick={() => setCurrentView('ventas')}
-              className={getNavClass('ventas')}
-            >
-              Mis Ventas
-            </button>
+          <nav className="flex flex-col gap-1.5">
+            <button onClick={() => setCurrentView('perfil')} className={getNavClass('perfil')}>Mi Perfil</button>
+            <button onClick={() => setCurrentView('merch')} className={getNavClass('merch')}>Mi Merch</button>
+            <button onClick={() => setCurrentView('lanzamientos')} className={getNavClass('lanzamientos')}>Lanzamientos</button>
+            <button onClick={() => setCurrentView('pistas')} className={getNavClass('pistas')}>Pistas (Tracks)</button>
+            <button onClick={() => setCurrentView('ventas')} className={getNavClass('ventas')}>Mis Ventas</button>
           </nav>
         </div>
       </aside>

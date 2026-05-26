@@ -6,9 +6,9 @@ import { getMerch } from '../api/merchService';
 import { createSale, createSaleDetail, getAllInventory } from '../api/shopService';
 import CustomerProfile from './CustomerProfile';
 import ReleaseDetail, { type CartItem } from './ReleaseDetail';
-import CustomerOrders from './CustomerOrders'; // <--- Importación nueva
+import CustomerOrders from './CustomerOrders';
 
-type CustomerView = 'home' | 'merch' | 'cart' | 'profile' | 'purchases'; // <--- Agregamos 'purchases'
+type CustomerView = 'home' | 'merch' | 'cart' | 'profile' | 'purchases';
 
 export default function CustomerDashboard({ currentUser, onLogout }: { currentUser: UserDto, onLogout: () => void }) {
   const [currentView, setCurrentView] = useState<CustomerView>('home');
@@ -131,7 +131,7 @@ export default function CustomerDashboard({ currentUser, onLogout }: { currentUs
       localStorage.removeItem(`cart_${currentUser.username}`); 
       
       alert("¡COMPRA EXITOSA! Tus discos y mercancía han sido reservados.");
-      setCurrentView('purchases'); // Redirigir directamente al historial al pagar
+      setCurrentView('purchases');
     } catch (err: any) {
       console.error("Fallo transaccional masivo:", err);
       alert("Error procesando pago: " + (err.message || "Error interno del servidor C#."));
@@ -161,40 +161,41 @@ export default function CustomerDashboard({ currentUser, onLogout }: { currentUs
 
       case 'merch':
         return (
-          <div className="mt-8 font-mono">
-            <h2 className="text-4xl font-black uppercase tracking-tighter mb-8 border-b-4 border-black pb-2">
-              APAREL & MERCHANDISING OFICIAL
+          <div className="mt-8" style={{animation: 'fadeIn 0.4s ease-out'}}>
+            <h2 className="text-2xl font-bold text-slate-100 mb-8 flex items-center gap-3">
+              <span className="w-1 h-6 bg-gradient-to-b from-violet-500 to-cyan-500 rounded-full"></span>
+              Merchandising Oficial
             </h2>
             {allMerch.length === 0 ? (
-              <p className="p-6 border-4 border-black border-dashed text-center">No hay mercancía disponible en los estantes de la disquera en este momento.</p>
+              <p className="border border-dashed border-white/10 rounded-xl p-8 text-center text-slate-500 text-sm">No hay mercancía disponible en los estantes de la disquera en este momento.</p>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                 {allMerch.map(m => (
-                  <div key={m.id} className="border-4 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-1 hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all flex flex-col">
-                    <div className="aspect-square border-b-4 border-black bg-gray-200 position-relative">
+                  <div key={m.id} className="bg-white/[0.04] border border-white/[0.08] rounded-xl overflow-hidden hover:-translate-y-1 hover:border-violet-500/30 hover:shadow-lg hover:shadow-violet-500/10 transition-all duration-300 flex flex-col">
+                    <div className="aspect-square bg-white/[0.06] overflow-hidden">
                       {m.photoUrl ? (
                         <img src={m.photoUrl} className="w-full h-full object-cover" alt={m.name} />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center font-bold text-gray-400">NO FOTO</div>
+                        <img src="/assets/vinyl_stack.png" className="w-full h-full object-cover opacity-50 grayscale" alt="Fallback Merch" />
                       )}
                     </div>
                     <div className="p-4 flex-grow flex flex-col justify-between">
                       <div>
-                        <span className="text-xs font-black uppercase bg-black text-white px-1.5 py-0.5">{m.type}</span>
-                        <h3 className="font-black uppercase tracking-tighter text-xl mt-2 break-words">{m.name}</h3>
-                        <p className="text-xs font-bold text-gray-500 uppercase mt-1">Banda: {getBandName(m.artistId)}</p>
+                        <span className="text-[10px] font-semibold uppercase bg-violet-500/20 text-violet-300 px-2.5 py-1 rounded-full border border-violet-500/20">{m.type}</span>
+                        <h3 className="font-bold text-slate-100 text-lg mt-3 break-words">{m.name}</h3>
+                        <p className="text-xs text-slate-500 mt-1">Banda: {getBandName(m.artistId)}</p>
                       </div>
-                      <div className="mt-6 border-t-2 border-black pt-3 flex items-center justify-between">
-                        <span className="font-black text-lg">${m.publicPrice} MXN</span>
+                      <div className="mt-5 border-t border-white/[0.06] pt-3 flex items-center justify-between">
+                        <span className="font-bold text-slate-100">${m.publicPrice} MXN</span>
                         {m.availableStock > 0 ? (
                           <button 
                             onClick={() => addMerchToCart(m)}
-                            className="bg-black text-white font-bold text-xs uppercase px-3 py-2 hover:bg-green-400 hover:text-black transition-colors cursor-pointer"
+                            className="bg-white/[0.08] text-emerald-400 font-semibold text-xs uppercase px-3 py-2 rounded-lg hover:bg-emerald-500/20 hover:border-emerald-500/20 border border-white/10 transition-all duration-300 cursor-pointer"
                           >
-                            [ + LLEVAR ]
+                            + Llevar
                           </button>
                         ) : (
-                          <span className="bg-red-200 text-red-700 border border-red-700 px-2 py-1 text-xs font-black uppercase">AGOTADO</span>
+                          <span className="bg-red-500/15 text-red-400 border border-red-500/20 px-3 py-1 text-xs font-medium rounded-full">AGOTADO</span>
                         )}
                       </div>
                     </div>
@@ -207,38 +208,41 @@ export default function CustomerDashboard({ currentUser, onLogout }: { currentUs
 
       case 'cart':
         return (
-          <div className="mt-8 font-mono max-w-3xl mx-auto">
-            <h2 className="text-4xl font-black uppercase tracking-tighter mb-8 border-b-4 border-black pb-2">CARRITO DE COMPRAS</h2>
+          <div className="mt-8 max-w-3xl mx-auto" style={{animation: 'fadeIn 0.4s ease-out'}}>
+            <h2 className="text-2xl font-bold text-slate-100 mb-8 flex items-center gap-3">
+              <span className="w-1 h-6 bg-gradient-to-b from-violet-500 to-cyan-500 rounded-full"></span>
+              Carrito de Compras
+            </h2>
             {cart.length === 0 ? (
-              <p className="p-6 border-4 border-black border-dashed text-center">El carrito está vacío.</p>
+              <p className="border border-dashed border-white/10 rounded-xl p-8 text-center text-slate-500 text-sm">El carrito está vacío.</p>
             ) : (
-              <div className="border-4 border-black bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-6">
-                <ul className="divide-y-2 border-black mb-6">
+              <div className="bg-white/[0.04] border border-white/10 rounded-xl p-6">
+                <ul className="divide-y divide-white/[0.06] mb-6">
                   {cart.map((item, idx) => (
                     <li key={idx} className="py-4 flex justify-between items-center">
                       <div>
-                        <p className="font-black uppercase text-lg">{item.releaseTitle}</p>
-                        <p className="text-sm font-bold text-gray-600 uppercase">
-                          Tipo/Formato: {item.formatName} | Cantidad: {item.quantity}
+                        <p className="font-semibold text-slate-100 text-lg">{item.releaseTitle}</p>
+                        <p className="text-sm text-slate-500">
+                          Tipo/Formato: {item.formatName} · Cantidad: {item.quantity}
                         </p>
                       </div>
                       <div className="flex items-center gap-4">
-                        <span className="font-black">${item.price * item.quantity} MXN</span>
-                        <button onClick={() => item.inventoryId && removeFromCart(item.inventoryId)} className="text-red-600 font-bold underline cursor-pointer">Eliminar</button>
+                        <span className="font-bold text-slate-100">${item.price * item.quantity} MXN</span>
+                        <button onClick={() => item.inventoryId && removeFromCart(item.inventoryId)} className="text-red-400 font-medium text-sm hover:bg-red-500/10 px-2 py-1 rounded-lg transition-colors cursor-pointer">Eliminar</button>
                       </div>
                     </li>
                   ))}
                 </ul>
-                <div className="border-t-4 border-black pt-4 flex justify-between items-center mb-6">
-                  <span className="font-black text-2xl">TOTAL GENERAL:</span>
-                  <span className="font-black text-2xl">${cartTotal} MXN</span>
+                <div className="border-t border-white/10 pt-4 flex justify-between items-center mb-6">
+                  <span className="font-bold text-xl text-slate-100">Total:</span>
+                  <span className="font-bold text-2xl gradient-text">${cartTotal} MXN</span>
                 </div>
                 <button 
                   onClick={handleCheckout}
                   disabled={isProcessing || validCartItems.length === 0}
-                  className="w-full bg-black text-white font-black uppercase py-4 hover:bg-green-500 hover:text-black transition-colors cursor-pointer disabled:opacity-50"
+                  className="w-full neo-btn-primary"
                 >
-                  {isProcessing ? 'PROCESANDO COMPRA MIXTA...' : '[ PROCEDER AL PAGO ]'}
+                  {isProcessing ? 'PROCESANDO COMPRA...' : 'PROCEDER AL PAGO →'}
                 </button>
               </div>
             )}
@@ -247,30 +251,45 @@ export default function CustomerDashboard({ currentUser, onLogout }: { currentUs
 
       default:
         return (
-          <div className="mt-8 font-mono">
-            <h2 className="text-4xl font-black uppercase tracking-tighter mb-8 border-b-4 border-black pb-2">
-              DISQUERA / CATÁLOGO GLOBAL
+          <div className="mt-8" style={{animation: 'fadeIn 0.4s ease-out'}}>
+            {/* Hero Banner */}
+            <div className="w-full h-64 md:h-80 rounded-2xl mb-12 relative overflow-hidden flex items-end">
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] via-[#0a0a0f]/40 to-transparent z-10"></div>
+              <img src="/assets/vinyl_stack.png" alt="Vinyl Collection" className="absolute inset-0 w-full h-full object-cover opacity-60" />
+              <div className="relative z-20 p-8 md:p-12 w-full max-w-3xl">
+                <span className="bg-violet-500/20 text-violet-300 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest border border-violet-500/20 mb-4 inline-block">Novedades Físicas</span>
+                <h1 className="text-3xl md:text-5xl font-bold text-white mb-3">Encuentra Tu Siguiente Vinilo.</h1>
+                <p className="text-slate-300 md:text-lg max-w-xl">Apoya a tus artistas independientes favoritos adquiriendo sus tirajes limitados de música y mercancía oficial.</p>
+              </div>
+            </div>
+
+            <h2 className="text-2xl font-bold text-slate-100 mb-8 flex items-center gap-3">
+              <span className="w-1 h-6 bg-gradient-to-b from-violet-500 to-cyan-500 rounded-full"></span>
+              Catálogo Global
             </h2>
             {loading ? (
-              <p className="animate-pulse text-xl">Sintonizando frecuencias...</p>
+              <div className="flex flex-col items-center justify-center py-20">
+                <div className="w-12 h-12 border-[3px] border-violet-500/30 border-t-violet-500 rounded-full animate-spin mb-4"></div>
+                <p className="text-slate-500 text-sm">Sintonizando frecuencias...</p>
+              </div>
             ) : (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
                 {allReleases.map(release => (
                   <div 
                     key={release.id} 
                     onClick={() => setSelectedRelease(release)}
-                    className="border-4 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-2 hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all cursor-pointer flex flex-col"
+                    className="bg-white/[0.04] border border-white/[0.08] rounded-xl overflow-hidden hover:-translate-y-1.5 hover:border-violet-500/30 hover:shadow-lg hover:shadow-violet-500/10 transition-all duration-300 cursor-pointer flex flex-col group"
                   >
-                    <div className="aspect-square border-b-4 border-black bg-gray-200">
+                    <div className="aspect-square bg-white/[0.06] overflow-hidden">
                       {release.coverUrl ? (
-                        <img src={release.coverUrl} className="w-full h-full object-cover" alt={release.title} />
+                        <img src={release.coverUrl} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt={release.title} />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center font-bold text-gray-400">N/A</div>
+                        <img src="/assets/turntable.png" className="w-full h-full object-cover opacity-60 grayscale group-hover:scale-105 transition-transform duration-500" alt="Fallback Cover" />
                       )}
                     </div>
-                    <div className="p-3">
-                      <h3 className="font-black uppercase tracking-tighter truncate">{release.title}</h3>
-                      <p className="text-xs font-bold text-gray-600 truncate">{getBandName(release.artistId)}</p>
+                    <div className="p-3.5">
+                      <h3 className="font-semibold text-slate-100 truncate">{release.title}</h3>
+                      <p className="text-xs text-slate-500 truncate mt-0.5">{getBandName(release.artistId)}</p>
                     </div>
                   </div>
                 ))}
@@ -283,13 +302,13 @@ export default function CustomerDashboard({ currentUser, onLogout }: { currentUs
 
   return (
     <div>
-      <div className="bg-white border-b-4 border-black font-mono">
-        <div className="max-w-6xl mx-auto flex overflow-x-auto">
-          <button onClick={() => handleNavClick('home')} className={`px-6 py-3 font-black uppercase text-sm border-r-4 border-black cursor-pointer ${currentView === 'home' && !selectedRelease ? 'bg-black text-white' : 'hover:bg-gray-200'}`}>Catálogo</button>
-          <button onClick={() => handleNavClick('merch')} className={`px-6 py-3 font-black uppercase text-sm border-r-4 border-black cursor-pointer ${currentView === 'merch' ? 'bg-black text-white' : 'hover:bg-gray-200'}`}>Merch</button>
-          <button onClick={() => handleNavClick('purchases')} className={`px-6 py-3 font-black uppercase text-sm border-r-4 border-black cursor-pointer ${currentView === 'purchases' ? 'bg-black text-white' : 'hover:bg-gray-200'}`}>Mis Compras</button>
-          <button onClick={() => handleNavClick('cart')} className={`px-6 py-3 font-black uppercase text-sm border-r-4 border-black cursor-pointer ${currentView === 'cart' ? 'bg-black text-white' : 'hover:bg-gray-200'}`}>Carrito [{validCartItems.reduce((s, i) => s + i.quantity, 0)}]</button>
-          <button onClick={() => handleNavClick('profile')} className={`px-6 py-3 font-black uppercase text-sm border-r-4 border-black cursor-pointer ${currentView === 'profile' ? 'bg-black text-white' : 'hover:bg-gray-200'}`}>Mi Perfil</button>
+      <div className="border-b border-white/[0.06]">
+        <div className="max-w-6xl mx-auto flex overflow-x-auto gap-1 px-4 py-2">
+          <button onClick={() => handleNavClick('home')} className={`px-5 py-2.5 font-semibold text-sm rounded-lg transition-all duration-300 cursor-pointer whitespace-nowrap ${currentView === 'home' && !selectedRelease ? 'bg-white/[0.1] text-white shadow-lg shadow-violet-500/10' : 'text-slate-400 hover:text-white hover:bg-white/[0.06]'}`}>Catálogo</button>
+          <button onClick={() => handleNavClick('merch')} className={`px-5 py-2.5 font-semibold text-sm rounded-lg transition-all duration-300 cursor-pointer whitespace-nowrap ${currentView === 'merch' ? 'bg-white/[0.1] text-white shadow-lg shadow-violet-500/10' : 'text-slate-400 hover:text-white hover:bg-white/[0.06]'}`}>Merch</button>
+          <button onClick={() => handleNavClick('purchases')} className={`px-5 py-2.5 font-semibold text-sm rounded-lg transition-all duration-300 cursor-pointer whitespace-nowrap ${currentView === 'purchases' ? 'bg-white/[0.1] text-white shadow-lg shadow-violet-500/10' : 'text-slate-400 hover:text-white hover:bg-white/[0.06]'}`}>Mis Compras</button>
+          <button onClick={() => handleNavClick('cart')} className={`px-5 py-2.5 font-semibold text-sm rounded-lg transition-all duration-300 cursor-pointer whitespace-nowrap ${currentView === 'cart' ? 'bg-white/[0.1] text-white shadow-lg shadow-violet-500/10' : 'text-slate-400 hover:text-white hover:bg-white/[0.06]'}`}>Carrito [{validCartItems.reduce((s, i) => s + i.quantity, 0)}]</button>
+          <button onClick={() => handleNavClick('profile')} className={`px-5 py-2.5 font-semibold text-sm rounded-lg transition-all duration-300 cursor-pointer whitespace-nowrap ${currentView === 'profile' ? 'bg-white/[0.1] text-white shadow-lg shadow-violet-500/10' : 'text-slate-400 hover:text-white hover:bg-white/[0.06]'}`}>Mi Perfil</button>
         </div>
       </div>
       <div className="max-w-6xl mx-auto px-4 pb-12">

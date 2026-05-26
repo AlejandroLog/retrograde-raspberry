@@ -1,118 +1,113 @@
 import { useState, useEffect } from 'react';
-import { getAllSales } from '../api/shopService';
 import { getAllUsers } from '../api/userService';
 import { getReleases } from '../api/releaseService';
-import { getArtists } from '../api/artistService';
+import { getAllInventory, getAllSales } from '../api/shopService';
 import type { SaleDto } from '../types/dtos';
 
 export default function AdminSummary() {
-  const [loading, setLoading] = useState(true);
-  
-  const [totalRevenue, setTotalRevenue] = useState(0);
-  const [totalOrders, setTotalOrders] = useState(0);
-  const [activeCustomers, setActiveCustomers] = useState(0);
-  const [activeArtists, setActiveArtists] = useState(0);
+  const [totalUsers, setTotalUsers] = useState(0);
+  const [totalArtists, setTotalArtists] = useState(0);
   const [totalReleases, setTotalReleases] = useState(0);
-  
+  const [totalStock, setTotalStock] = useState(0);
+  const [totalEarnings, setTotalEarnings] = useState(0);
   const [recentSales, setRecentSales] = useState<SaleDto[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([
-      getAllSales(),
-      getAllUsers(),
-      getReleases(),
-      getArtists()
-    ])
-    .then(([salesData, usersData, releasesData, artistsData]) => {
-      const revenue = salesData.reduce((sum, sale) => sum + sale.totalAmount, 0);
-      setTotalRevenue(revenue);
-      setTotalOrders(salesData.length);
+    Promise.all([getAllUsers(), getReleases(), getAllInventory(), getAllSales()])
+    .then(([users, releases, inventory, sales]) => {
+      setTotalUsers(users.length);
+      setTotalArtists(users.filter(u => u.role.toLowerCase() === 'artista').length);
+      setTotalReleases(releases.length);
       
-      const sortedSales = [...salesData].sort((a, b) => 
-        new Date(b.saleDate).getTime() - new Date(a.saleDate).getTime()
-      );
+      const stock = inventory.reduce((sum, item) => sum + item.stock, 0);
+      setTotalStock(stock);
+
+      const earnings = sales.filter(s => s.status === 'Pagado').reduce((sum, item) => sum + item.totalAmount, 0);
+      setTotalEarnings(earnings);
+
+      const sortedSales = [...sales].sort((a, b) => new Date(b.saleDate).getTime() - new Date(a.saleDate).getTime());
       setRecentSales(sortedSales.slice(0, 5));
-
-      const customers = usersData.filter(u => u.role.toLowerCase() === 'cliente').length;
-      const artists = usersData.filter(u => u.role.toLowerCase() === 'artista').length;
-      setActiveCustomers(customers);
-      setActiveArtists(artists);
-
-      setTotalReleases(releasesData.length);
-
       setLoading(false);
     })
-    .catch(err => {
-      console.error("Error cargando métricas:", err);
-      setLoading(false);
-    });
+    .catch(err => { console.error(err); setLoading(false); });
   }, []);
 
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 font-mono">
-        <div className="w-16 h-16 border-8 border-black border-t-transparent animate-spin mb-4"></div>
-        <p className="font-black tracking-widest uppercase animate-pulse">Calculando métricas globales...</p>
-      </div>
-    );
-  }
-
-  const StatCard = ({ title, value, prefix = "" }: { title: string, value: string | number, prefix?: string }) => (
-    <div className="border-4 border-black p-6 bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-1 transition-transform">
-      <h4 className="text-sm font-bold uppercase text-gray-500 mb-2">{title}</h4>
-      <p className="text-4xl font-black tracking-tighter break-words">
-        <span className="text-xl mr-1">{prefix}</span>{value}
-      </p>
+  if (loading) return (
+    <div className="flex flex-col items-center justify-center py-20">
+      <div className="w-12 h-12 border-[3px] border-violet-500/30 border-t-violet-500 rounded-full animate-spin mb-4"></div>
+      <p className="text-slate-500 text-sm font-medium tracking-wider uppercase">Extrayendo analíticas...</p>
     </div>
   );
 
   return (
-    <div className="font-mono mt-8 max-w-6xl">
-      <h2 className="text-3xl font-black uppercase tracking-tighter mb-8 inline-block bg-black text-white px-3 py-1">
-        PUNTO DE CONTROL MÁSTER
+    <div style={{animation: 'fadeIn 0.4s ease-out'}}>
+      <h2 className="text-2xl font-bold text-slate-100 mb-6 flex items-center gap-3">
+        <span className="w-1 h-6 bg-gradient-to-b from-violet-500 to-cyan-500 rounded-full"></span>
+        Reporte General del Sistema
       </h2>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-        <StatCard title="Ingresos Totales" value={totalRevenue.toLocaleString('es-MX', { minimumFractionDigits: 2 })} prefix="$" />
-        <StatCard title="Pedidos Procesados" value={totalOrders} />
-        <StatCard title="Discos en Catálogo" value={totalReleases} />
-        <StatCard title="Fans / Clientes Activos" value={activeCustomers} />
-        <StatCard title="Músicos Firmados" value={activeArtists} />
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-10">
+        <div className="bg-white/[0.04] border border-white/10 rounded-xl p-6 hover:border-white/20 transition-all duration-300 col-span-2 md:col-span-1">
+          <h4 className="text-xs font-semibold uppercase text-slate-500 tracking-wider mb-3">Ventas Netas</h4>
+          <p className="text-3xl font-bold text-emerald-400 tracking-tight">
+            <span className="text-lg text-emerald-500/50 mr-1">$</span>{totalEarnings.toLocaleString('es-MX', { maximumFractionDigits: 0 })}
+          </p>
+        </div>
+        
+        <div className="bg-white/[0.04] border border-white/10 rounded-xl p-6 hover:border-white/20 transition-all duration-300">
+          <h4 className="text-xs font-semibold uppercase text-slate-500 tracking-wider mb-3">Total Usuarios</h4>
+          <p className="text-3xl font-bold text-slate-100 tracking-tight">{totalUsers}</p>
+        </div>
+
+        <div className="bg-white/[0.04] border border-white/10 rounded-xl p-6 hover:border-white/20 transition-all duration-300">
+          <h4 className="text-xs font-semibold uppercase text-slate-500 tracking-wider mb-3">Artistas</h4>
+          <p className="text-3xl font-bold text-slate-100 tracking-tight">{totalArtists}</p>
+        </div>
+
+        <div className="bg-white/[0.04] border border-white/10 rounded-xl p-6 hover:border-white/20 transition-all duration-300">
+          <h4 className="text-xs font-semibold uppercase text-slate-500 tracking-wider mb-3">Lanzamientos</h4>
+          <p className="text-3xl font-bold text-slate-100 tracking-tight">{totalReleases}</p>
+        </div>
+
+        <div className="bg-white/[0.04] border border-white/10 rounded-xl p-6 hover:border-white/20 transition-all duration-300">
+          <h4 className="text-xs font-semibold uppercase text-slate-500 tracking-wider mb-3">Piezas Físicas</h4>
+          <p className="text-3xl font-bold text-slate-100 tracking-tight">{totalStock}</p>
+        </div>
       </div>
 
-      <h3 className="text-xl font-black uppercase tracking-tighter mb-4 border-b-4 border-black pb-2">
-        ÚLTIMAS 5 TRANSACCIONES
+      <h3 className="text-xl font-bold text-slate-100 mb-6 flex items-center gap-3">
+        <span className="w-1 h-5 bg-gradient-to-b from-violet-500 to-cyan-500 rounded-full"></span>
+        Últimas Transacciones (Top 5)
       </h3>
-
+      
       {recentSales.length === 0 ? (
-        <p className="border-4 border-black p-6 bg-yellow-100 font-bold">Aún no hay ventas registradas en el sistema.</p>
+        <p className="border border-dashed border-white/10 rounded-xl p-8 text-center text-slate-500 text-sm">No hay transacciones registradas.</p>
       ) : (
-        <div className="border-4 border-black bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
+        <div className="bg-white/[0.04] border border-white/10 rounded-xl overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-black text-white uppercase text-sm">
-                  <th className="p-3 border-r-2 border-white text-center w-16">ID</th>
-                  <th className="p-3 border-r-2 border-white">Fecha</th>
-                  <th className="p-3 border-r-2 border-white">Cliente (Email)</th>
-                  <th className="p-3 border-r-2 border-white text-center">Estado</th>
-                  <th className="p-3 text-right">Total</th>
+                <tr className="bg-white/[0.08]">
+                  <th className="p-4 text-xs font-semibold uppercase text-slate-400 tracking-wider w-24">Ticket #</th>
+                  <th className="p-4 text-xs font-semibold uppercase text-slate-400 tracking-wider">Fecha / Hora</th>
+                  <th className="p-4 text-xs font-semibold uppercase text-slate-400 tracking-wider">Cliente</th>
+                  <th className="p-4 text-xs font-semibold uppercase text-slate-400 tracking-wider text-right">Monto</th>
+                  <th className="p-4 text-xs font-semibold uppercase text-slate-400 tracking-wider text-center">Estado</th>
                 </tr>
               </thead>
               <tbody>
-                {recentSales.map((sale, idx) => (
-                  <tr key={sale.id} className={`border-b-2 border-black hover:bg-gray-100 ${idx % 2 === 0 ? 'bg-white' : 'bg-[#f4f4f0]'}`}>
-                    <td className="p-3 border-r-2 border-black font-bold text-center">#{sale.id}</td>
-                    <td className="p-3 border-r-2 border-black text-sm">
-                      {new Date(sale.saleDate).toLocaleString('es-MX', { dateStyle: 'short', timeStyle: 'short' })}
-                    </td>
-                    <td className="p-3 border-r-2 border-black font-bold text-sm truncate max-w-[200px]">{sale.customerEmail}</td>
-                    <td className="p-3 border-r-2 border-black text-center">
-                      <span className="bg-green-300 border-2 border-black px-2 py-0.5 text-xs font-black uppercase">
+                {recentSales.map((sale, i) => (
+                  <tr key={sale.id} className={`border-b border-white/[0.06] hover:bg-white/[0.04] transition-colors ${i % 2 !== 0 ? 'bg-white/[0.02]' : ''}`}>
+                    <td className="p-4 font-bold text-slate-300 text-sm text-center">#{sale.id}</td>
+                    <td className="p-4 text-slate-400 text-sm">{new Date(sale.saleDate).toLocaleString('es-MX')}</td>
+                    <td className="p-4 text-slate-200 text-sm">{sale.customerEmail}</td>
+                    <td className="p-4 text-right font-bold text-emerald-400 text-sm">${sale.totalAmount}</td>
+                    <td className="p-4 text-center">
+                      <span className={`rounded-full px-3 py-1 text-[10px] font-bold uppercase border ${sale.status === 'Pagado' ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20' : 'bg-amber-500/15 text-amber-400 border-amber-500/20'}`}>
                         {sale.status}
                       </span>
                     </td>
-                    <td className="p-3 font-black text-right">${sale.totalAmount.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</td>
                   </tr>
                 ))}
               </tbody>

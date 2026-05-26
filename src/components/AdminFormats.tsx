@@ -1,130 +1,87 @@
 import { useState, useEffect } from 'react';
-import type { PhysicalFormatDto, UserDto } from '../types/dtos';
+import type { PhysicalFormatDto } from '../types/dtos';
 import { getPhysicalFormats, createPhysicalFormat, deletePhysicalFormat } from '../api/shopService';
 
-export default function AdminFormats({ currentUser }: { currentUser: UserDto }) {
+export default function AdminFormats() {
   const [formats, setFormats] = useState<PhysicalFormatDto[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  // Estados del Formulario
   const [name, setName] = useState('');
-  const [requiresShipping, setRequiresShipping] = useState(false);
+  const [hasColorOption, setHasColorOption] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const loadData = async () => {
     setLoading(true);
-    try {
-      const data = await getPhysicalFormats();
-      setFormats(data);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
+    try { const data = await getPhysicalFormats(); setFormats(data); } catch (err) { console.error(err); } finally { setLoading(false); }
   };
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  useEffect(() => { loadData(); }, []);
+
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await createPhysicalFormat({
-        name,
-        requiresPhysicalShipping: requiresShipping
-      });
-      setName('');
-      setRequiresShipping(false);
-      loadData();
-    } catch (err: any) {
-      alert("Error: " + err.message);
-    }
+      const data = { name, hasColorOption };
+      await createPhysicalFormat(data);
+      setName(''); setHasColorOption(false); loadData(); alert("Catálogo de formatos actualizado.");
+    } catch (err: any) { alert("Error: " + err.message); }
   };
 
   const handleDelete = async (id: number) => {
-    if (!window.confirm("¿Seguro que quieres eliminar este formato? Puede afectar el inventario existente.")) return;
-    try {
-      await deletePhysicalFormat(id, currentUser.username);
-      loadData();
-    } catch (err: any) {
-      alert("Error: " + err.message);
-    }
+    if(!window.confirm("¿Seguro que deseas eliminar este formato físico?")) return;
+    try { await deletePhysicalFormat(id); loadData(); } catch (err: any) { alert("Error: " + err.message); }
   };
 
-  if (loading) return <p className="animate-pulse font-mono p-8">Cargando formatos...</p>;
+  if (loading) return (<div className="flex flex-col items-center justify-center py-20"><div className="w-12 h-12 border-[3px] border-violet-500/30 border-t-violet-500 rounded-full animate-spin mb-4"></div></div>);
 
   return (
-    <div className="font-mono mt-8 max-w-4xl">
-      
-      <form onSubmit={handleSubmit} className="border-4 border-black p-6 bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] mb-12">
-        <h3 className="text-2xl font-black uppercase tracking-tighter mb-6 border-b-4 border-black pb-2">
-          NUEVO FORMATO
-        </h3>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
-          <div>
-            <label className="block text-sm font-bold uppercase mb-1">Nombre del Formato</label>
-            <input 
-              type="text" required placeholder="Ej. Vinil 12 pulgadas" value={name} onChange={e => setName(e.target.value)}
-              className="w-full border-2 border-black p-2 outline-none focus:bg-black focus:text-white"
-            />
-          </div>
-
-          <div className="flex items-center gap-2 mb-2">
-            <input 
-              type="checkbox" 
-              id="shipping"
-              checked={requiresShipping} 
-              onChange={e => setRequiresShipping(e.target.checked)}
-              className="w-5 h-5 border-2 border-black cursor-pointer appearance-none checked:bg-black checked:after:content-['X'] checked:after:text-white checked:after:flex checked:after:justify-center checked:after:items-center checked:after:h-full checked:after:font-bold"
-            />
-            <label htmlFor="shipping" className="text-sm font-bold uppercase cursor-pointer">
-              ¿Requiere envío físico?
-            </label>
-          </div>
-        </div>
-
-        <button type="submit" className="mt-8 w-full bg-black text-white font-black uppercase py-3 hover:translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.5)] transition-all cursor-pointer">
-          [ REGISTRAR FORMATO ]
-        </button>
-      </form>
-
-      <h2 className="text-3xl font-black uppercase tracking-tighter mb-6 inline-block bg-black text-white px-2 py-1">
-        FORMATOS REGISTRADOS
+    <div style={{animation: 'fadeIn 0.4s ease-out'}}>
+      <h2 className="text-2xl font-bold text-slate-100 mb-6 flex items-center gap-3">
+        <span className="w-1 h-6 bg-gradient-to-b from-violet-500 to-cyan-500 rounded-full"></span>
+        Catálogo de Formatos Físicos
       </h2>
 
-      {formats.length === 0 ? (
-        <p>No hay formatos dados de alta.</p>
-      ) : (
-        <div className="border-4 border-black bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-black text-white uppercase text-sm">
-                <th className="p-3 border-r-2 border-white w-16 text-center">ID</th>
-                <th className="p-3 border-r-2 border-white">Nombre</th>
-                <th className="p-3 border-r-2 border-white text-center">Físico</th>
-                <th className="p-3 text-center">Acción</th>
-              </tr>
-            </thead>
-            <tbody>
-              {formats.map((format, idx) => (
-                <tr key={format.id} className={`border-b-2 border-black hover:bg-gray-100 ${idx % 2 === 0 ? 'bg-white' : 'bg-[#f4f4f0]'}`}>
-                  <td className="p-3 border-r-2 border-black font-bold text-center">{format.id}</td>
-                  <td className="p-3 border-r-2 border-black font-bold uppercase">{format.name}</td>
-                  <td className="p-3 border-r-2 border-black text-center font-bold">
-                    {format.requiresPhysicalShipping ? 'SÍ' : 'NO'}
-                  </td>
-                  <td className="p-3 text-center">
-                    <button onClick={() => handleDelete(format.id)} className="text-xs font-bold text-red-600 underline hover:bg-red-600 hover:text-white px-2 py-1">
-                      Eliminar
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      <form onSubmit={handleSubmit} className={`bg-white/[0.04] border border-white/10 rounded-xl p-6 mb-8 max-w-2xl`}>
+        <div className="flex justify-between items-center mb-6 pb-4 border-b border-white/[0.08]">
+          <h3 className="text-lg font-bold text-slate-100">Crear Formato Físico</h3>
         </div>
-      )}
+
+        <div className="space-y-4">
+          <div>
+            <label className="block text-xs font-semibold uppercase text-slate-400 mb-2 tracking-wider">Nombre del Formato</label>
+            <input type="text" required placeholder="Ej. Vinilo 12 pulgadas" value={name} onChange={e => setName(e.target.value)} className="w-full bg-white/[0.04] border border-white/10 rounded-lg p-2.5 text-slate-100 outline-none focus:border-violet-500/50 transition-all text-sm" />
+          </div>
+          <div className="flex items-center gap-3 bg-white/[0.02] border border-white/[0.06] rounded-lg p-4">
+            <input type="checkbox" id="colorOpt" checked={hasColorOption} onChange={e => setHasColorOption(e.target.checked)} className="w-5 h-5 rounded border-2 border-white/20 bg-white/[0.04] checked:bg-violet-500 checked:border-violet-500 cursor-pointer accent-violet-500" />
+            <label htmlFor="colorOpt" className="text-sm font-medium text-slate-300 cursor-pointer select-none">¿Admite variantes de color? (Ej. vinilos color especial)</label>
+          </div>
+        </div>
+        <button type="submit" className="mt-6 w-full neo-btn-primary">+ Añadir al Catálogo</button>
+      </form>
+
+      <div className="bg-white/[0.04] border border-white/10 rounded-xl overflow-hidden max-w-2xl">
+        <table className="w-full text-left border-collapse">
+          <thead>
+            <tr className="bg-white/[0.08]">
+              <th className="p-4 text-xs font-semibold uppercase text-slate-400 tracking-wider">Formato</th>
+              <th className="p-4 text-xs font-semibold uppercase text-slate-400 tracking-wider text-center">Opc. Color</th>
+              <th className="p-4 text-xs font-semibold uppercase text-slate-400 tracking-wider text-center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {formats.map((f, idx) => (
+              <tr key={f.id} className={`border-b border-white/[0.06] hover:bg-white/[0.04] transition-colors ${idx % 2 !== 0 ? 'bg-white/[0.02]' : ''}`}>
+                <td className="p-4 font-medium text-slate-200 text-sm">{f.name}</td>
+                <td className="p-4 text-center">
+                  <span className={`px-2 py-1 rounded text-[10px] font-bold border uppercase tracking-wider ${f.hasColorOption ? 'bg-violet-500/15 text-violet-400 border-violet-500/20' : 'bg-slate-500/15 text-slate-400 border-slate-500/20'}`}>{f.hasColorOption ? 'SÍ' : 'NO'}</span>
+                </td>
+                <td className="p-4 text-center space-x-2">
+                  <button onClick={() => handleDelete(f.id)} className="text-xs font-medium text-red-400 hover:text-red-300 px-2 py-1 rounded hover:bg-red-500/10 transition-colors cursor-pointer">Eliminar</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

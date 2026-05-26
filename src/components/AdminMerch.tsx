@@ -1,148 +1,125 @@
 import { useState, useEffect } from 'react';
-import type { UserDto, MerchandisingDto } from '../types/dtos';
-import { getMerch, approveMerch, updateMerch, deleteMerch } from '../api/merchService';
+import type { MerchandisingDto, ArtistDto, InventoryDto } from '../types/dtos';
+import { getMerch, updateMerch } from '../api/merchService';
 import { getArtists } from '../api/artistService';
-import { createInventory } from '../api/shopService'; // <--- Importamos createInventory
+import { createInventory } from '../api/shopService';
 
-export default function AdminMerch({ currentUser }: { currentUser: UserDto }) {
-  const [merch, setMerch] = useState<MerchandisingDto[]>([]);
-  const [artists, setArtists] = useState<any[]>([]);
+export default function AdminMerch() {
+  const [merchList, setMerchList] = useState<MerchandisingDto[]>([]);
+  const [artists, setArtists] = useState<ArtistDto[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const [selectedItem, setSelectedItem] = useState<MerchandisingDto | null>(null);
-  const [stock, setStock] = useState('50');
-  const [sku, setSku] = useState('');
+  const [selectedMerch, setSelectedMerch] = useState<MerchandisingDto | null>(null);
+  const [approvalSku, setApprovalSku] = useState('');
+  const [approvalStock, setApprovalStock] = useState('50');
 
   const loadData = async () => {
+    setLoading(true);
     try {
-      const [merchData, artistData] = await Promise.all([getMerch(), getArtists()]);
-      setMerch(merchData);
-      setArtists(artistData);
-    } catch (err) { 
-      console.error(err); 
-    } finally { 
-      setLoading(false); 
-    }
+      const [merch, arts] = await Promise.all([getMerch(), getArtists()]);
+      setMerchList(merch);
+      setArtists(arts);
+    } catch (err) { console.error(err); } finally { setLoading(false); }
   };
 
   useEffect(() => { loadData(); }, []);
 
-  const handleAction = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedItem) return;
+  const getBandName = (id: number) => { const a = artists.find(x => x.id === id); return a ? a.bandName : 'Desconocido'; };
 
-    const finalSku = sku.trim() 
-      ? sku.trim().toUpperCase() 
-      : `MCH-${selectedItem.type.substring(0, 3).toUpperCase()}-${Date.now()}`;
-
+  const handleApprove = async () => {
+    if (!selectedMerch || !approvalSku || !approvalStock) return alert("Faltan datos de aprobación");
+    const previewPublicPrice = selectedMerch.artistPrice * 1.25;
     try {
-      if (selectedItem.status === 'Pendiente') {
-        await approveMerch(selectedItem.id, { availableStock: parseInt(stock), sku: finalSku });
-        
-        try {
-          await createInventory({
-            releaseId: 1, 
-            physicalFormatId: 1, 
-            availableStock: parseInt(stock),
-            salePrice: selectedItem.publicPrice || (selectedItem.artistPrice * 1.25),
-            sku: finalSku
-          });
-        } catch (invErr) {
-          console.error("No se pudo crear el inventario fantasma:", invErr);
-        }
-
-        alert(`Propuesta aceptada con el SKU: ${finalSku} e inyectada en ventas.`);
-      } else {
-        await updateMerch(selectedItem.id, { availableStock: parseInt(stock), sku: finalSku });
-        alert("Artículo actualizado correctamente.");
-      }
-      setSelectedItem(null);
-      setSku('');
+      await updateMerch(selectedMerch.id, { ...selectedMerch, status: 'Aceptado', sku: approvalSku, publicPrice: previewPublicPrice, availableStock: parseInt(approvalStock) });
+      await createInventory({ releaseId: 0, physicalFormatId: 0, stock: parseInt(approvalStock), salePrice: previewPublicPrice, sku: approvalSku });
+      alert("Mercancía aprobada y registrada en inventario maestro.");
+      setSelectedMerch(null);
       loadData();
-    } catch (err: any) { 
-      alert("Error: " + err.message); 
-    }
+    } catch (err: any) { alert("Error: " + err.message); }
   };
 
-  const handleDelete = async (id: number) => {
-    if (!window.confirm("¿Dar de baja esta mercancía?")) return;
-    try {
-      await deleteMerch(id, currentUser.username);
-      loadData();
-    } catch (err: any) { 
-      alert(err.message); 
-    }
+  const handleReject = async (merch: MerchandisingDto) => {
+    if (!window.confirm("¿Rechazar esta propuesta de mercancía?")) return;
+    try { await updateMerch(merch.id, { ...merch, status: 'Rechazado' }); loadData(); } catch (err: any) { alert("Error: " + err.message); }
   };
 
-  const getArtistName = (id: number) => artists.find(a => a.id === id)?.bandName || 'Desconocido';
-
-  if (loading) return <p className="font-mono animate-pulse p-8">Cargando almacenes de mercancía...</p>;
+  if (loading) return (<div className="flex flex-col items-center justify-center py-20"><div className="w-12 h-12 border-[3px] border-violet-500/30 border-t-violet-500 rounded-full animate-spin mb-4"></div></div>);
 
   return (
-    <div className="font-mono mt-8 max-w-5xl">
-      {selectedItem && (
-        <form onSubmit={handleAction} className="border-4 border-black p-6 bg-yellow-100 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] mb-8 ring-4 ring-black">
-          <h4 className="font-black text-lg uppercase border-b-2 border-black pb-1 mb-4">
-            {selectedItem.status === 'Pendiente' ? 'AUTORIZAR Y ASIGNAR LOGÍSTICA' : 'MODIFICAR LOGÍSTICA'}
-          </h4>
-          <p className="text-xs font-bold mb-4">Producto: {selectedItem.name} | Precio sugerido artista: ${selectedItem.artistPrice}</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+    <div style={{animation: 'fadeIn 0.4s ease-out'}}>
+      <h2 className="text-2xl font-bold text-slate-100 mb-6 flex items-center gap-3">
+        <span className="w-1 h-6 bg-gradient-to-b from-violet-500 to-cyan-500 rounded-full"></span>
+        Control de Calidad: Merchandising
+      </h2>
+
+      {selectedMerch && (
+        <div className="bg-white/[0.06] border border-white/10 rounded-xl p-6 mb-8 max-w-2xl" style={{animation: 'slideUp 0.3s ease-out'}}>
+          <div className="flex justify-between items-start border-b border-white/[0.08] pb-3 mb-4">
+            <h3 className="text-xl font-bold text-slate-100">Aprobar: {selectedMerch.name}</h3>
+            <button onClick={() => setSelectedMerch(null)} className="text-slate-400 hover:text-white bg-white/[0.06] hover:bg-white/[0.1] px-3 py-1.5 text-xs font-medium rounded-lg transition-all cursor-pointer">Cancelar</button>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <div>
-              <label className="block text-xs font-bold uppercase mb-1">Stock Inicial</label>
-              <input type="number" min="0" required value={stock} onChange={e => setStock(e.target.value)} className="w-full border-2 border-black p-2 bg-white outline-none focus:bg-black focus:text-white" />
+              <p className="text-xs font-semibold uppercase text-slate-400 mb-1 tracking-wider">Precio Solicitado (Artista)</p>
+              <p className="font-bold text-slate-200">${selectedMerch.artistPrice} MXN</p>
             </div>
             <div>
-              <label className="block text-xs font-bold uppercase mb-1">Código SKU</label>
-              <input 
-                type="text" 
-                placeholder="Auto-generado si se deja vacío" 
-                value={sku} 
-                onChange={e => setSku(e.target.value)} 
-                className="w-full border-2 border-black p-2 bg-white uppercase outline-none focus:bg-black focus:text-white placeholder-gray-500 font-bold" 
-              />
+              <p className="text-xs font-semibold uppercase text-slate-400 mb-1 tracking-wider">Precio Final al Público (+25%)</p>
+              <p className="font-bold text-emerald-400">${(selectedMerch.artistPrice * 1.25).toFixed(2)} MXN</p>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold uppercase text-slate-400 mb-2 tracking-wider">Asignar SKU Oficial</label>
+              <input type="text" placeholder="Ej. MERCH-TSHIRT-001" value={approvalSku} onChange={e => setApprovalSku(e.target.value)} className="w-full bg-white/[0.04] border border-white/10 rounded-lg p-2 text-slate-100 outline-none focus:border-violet-500/50 transition-all text-sm" />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold uppercase text-slate-400 mb-2 tracking-wider">Stock Inicial Recibido</label>
+              <input type="number" min="1" value={approvalStock} onChange={e => setApprovalStock(e.target.value)} className="w-full bg-white/[0.04] border border-white/10 rounded-lg p-2 text-slate-100 outline-none focus:border-violet-500/50 transition-all text-sm" />
             </div>
           </div>
-          <div className="flex gap-2">
-            <button type="submit" className="flex-grow bg-black text-white font-black p-2 uppercase text-sm border-2 border-black hover:bg-white hover:text-black transition-colors cursor-pointer">[ CONFIRMAR ]</button>
-            <button type="button" onClick={() => { setSelectedItem(null); setSku(''); }} className="bg-white text-black font-bold p-2 uppercase text-sm border-2 border-black cursor-pointer">Cerrar</button>
-          </div>
-        </form>
+          <button onClick={handleApprove} className="w-full neo-btn-primary">Confirmar Aprobación e Ingresar a Inventario</button>
+        </div>
       )}
 
-      <h2 className="text-3xl font-black uppercase mb-6 inline-block bg-black text-white px-2 py-0.5">REVISIÓN DE MERCHANDISING</h2>
-      <div className="border-4 border-black bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-black text-white uppercase text-xs font-bold">
-              <th className="p-3 border-r-2 border-white">Banda</th>
-              <th className="p-3 border-r-2 border-white">Producto</th>
-              <th className="p-3 border-r-2 border-white text-center">Estatus</th>
-              <th className="p-3 border-r-2 border-white text-right">P. Público</th>
-              <th className="p-3 text-center">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {merch.map((item, idx) => (
-              <tr key={item.id} className={`border-b-2 border-black ${idx % 2 === 0 ? 'bg-white' : 'bg-[#f4f4f0]'}`}>
-                <td className="p-3 border-r-2 border-black font-bold text-sm uppercase">{getArtistName(item.artistId)}</td>
-                <td className="p-3 border-r-2 border-black font-black uppercase text-sm">
-                  {item.name} <span className="text-xs font-normal text-gray-500">({item.type})</span>
-                  {item.sku && <div className="text-[10px] text-gray-500 font-mono tracking-tight font-bold mt-0.5">SKU: {item.sku} | Stock: {item.availableStock} u.</div>}
-                </td>
-                <td className="p-3 border-r-2 border-black text-center">
-                  <span className={`px-2 py-0.5 text-xs border-2 border-black font-black uppercase ${item.status === 'Aceptado' ? 'bg-green-300' : 'bg-yellow-200 animate-pulse'}`}>{item.status}</span>
-                </td>
-                <td className="p-3 border-r-2 border-black text-right font-black">${item.publicPrice.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</td>
-                <td className="p-3 text-center space-x-2 text-xs">
-                  <button onClick={() => { setSelectedItem(item); setStock(item.availableStock.toString()); setSku(item.sku || ''); }} className="font-bold underline uppercase hover:bg-black hover:text-white px-1 cursor-pointer">
-                    {item.status === 'Pendiente' ? 'Aceptar' : 'Editar'}
-                  </button>
-                  <button onClick={() => handleDelete(item.id)} className="font-bold text-red-600 underline uppercase hover:bg-red-600 hover:text-white px-1 cursor-pointer">Eliminar</button>
-                </td>
+      <div className="bg-white/[0.04] border border-white/10 rounded-xl overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-white/[0.08]">
+                <th className="p-4 text-xs font-semibold uppercase text-slate-400 tracking-wider">Artículo</th>
+                <th className="p-4 text-xs font-semibold uppercase text-slate-400 tracking-wider">Banda / Proyecto</th>
+                <th className="p-4 text-xs font-semibold uppercase text-slate-400 tracking-wider text-right">Precio Base</th>
+                <th className="p-4 text-xs font-semibold uppercase text-slate-400 tracking-wider text-center">Estado</th>
+                <th className="p-4 text-xs font-semibold uppercase text-slate-400 tracking-wider text-center">Resolución</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {merchList.map((m, idx) => (
+                <tr key={m.id} className={`border-b border-white/[0.06] hover:bg-white/[0.04] transition-colors ${idx % 2 !== 0 ? 'bg-white/[0.02]' : ''}`}>
+                  <td className="p-4 text-sm font-medium text-slate-200">
+                    {m.name}
+                    <div className="text-[10px] text-slate-500 uppercase tracking-wider mt-0.5">{m.type}</div>
+                  </td>
+                  <td className="p-4 text-sm text-slate-400">{getBandName(m.artistId)}</td>
+                  <td className="p-4 text-right font-bold text-slate-300 text-sm">${m.artistPrice}</td>
+                  <td className="p-4 text-center">
+                    <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${m.status === 'Aceptado' ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20' : m.status === 'Rechazado' ? 'bg-red-500/15 text-red-400 border-red-500/20' : 'bg-amber-500/15 text-amber-400 border-amber-500/20 animate-pulse'}`}>{m.status}</span>
+                  </td>
+                  <td className="p-4 text-center space-x-2">
+                    {m.status === 'Pendiente' ? (
+                      <>
+                        <button onClick={() => { setSelectedMerch(m); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="text-xs font-medium text-emerald-400 hover:text-emerald-300 px-3 py-1.5 rounded-lg border border-emerald-500/20 hover:bg-emerald-500/10 transition-colors cursor-pointer">Revisar</button>
+                        <button onClick={() => handleReject(m)} className="text-xs font-medium text-red-400 hover:text-red-300 px-3 py-1.5 rounded-lg border border-red-500/20 hover:bg-red-500/10 transition-colors cursor-pointer">Rechazar</button>
+                      </>
+                    ) : (
+                      <span className="text-[10px] text-slate-500 font-medium">RESUELTO</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

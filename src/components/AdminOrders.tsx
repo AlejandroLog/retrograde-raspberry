@@ -1,17 +1,14 @@
 import { useState, useEffect } from 'react';
-import type { UserDto, SaleDto, SaleDetailDto, InventoryDto, ReleaseDto, PhysicalFormatDto, MerchandisingDto } from '../types/dtos';
+import type { SaleDto, SaleDetailDto, InventoryDto, ReleaseDto, PhysicalFormatDto } from '../types/dtos';
 import { getAllSales, getAllSaleDetails, getAllInventory, getPhysicalFormats, deleteSale } from '../api/shopService';
 import { getReleases } from '../api/releaseService';
-import { getMerch } from '../api/merchService';
 
-export default function AdminOrders({ currentUser }: { currentUser: UserDto }) {
+export default function AdminOrders() {
   const [sales, setSales] = useState<SaleDto[]>([]);
   const [saleDetails, setSaleDetails] = useState<SaleDetailDto[]>([]);
-  
   const [inventory, setInventory] = useState<InventoryDto[]>([]);
   const [releases, setReleases] = useState<ReleaseDto[]>([]);
   const [formats, setFormats] = useState<PhysicalFormatDto[]>([]);
-  const [merch, setMerch] = useState<MerchandisingDto[]>([]);
   
   const [loading, setLoading] = useState(true);
   const [selectedSale, setSelectedSale] = useState<SaleDto | null>(null);
@@ -19,152 +16,113 @@ export default function AdminOrders({ currentUser }: { currentUser: UserDto }) {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [
-        salesData, detailsData, invData, relData, formData, merchData
-      ] = await Promise.all([
-        getAllSales(), getAllSaleDetails(), getAllInventory(), getReleases(), getPhysicalFormats(), getMerch()
+      const [sData, sdData, inv, rel, form] = await Promise.all([
+        getAllSales(), getAllSaleDetails(), getAllInventory(), getReleases(), getPhysicalFormats()
       ]);
-
-      const sortedSales = salesData.sort((a, b) => new Date(b.saleDate).getTime() - new Date(a.saleDate).getTime());
-
-      setSales(sortedSales);
-      setSaleDetails(detailsData);
-      setInventory(invData);
-      setReleases(relData);
-      setFormats(formData);
-      setMerch(merchData);
-    } catch (err) {
-      console.error("Error al cargar pedidos:", err);
-    } finally {
-      setLoading(false);
-    }
+      setSales(sData.sort((a, b) => new Date(b.saleDate).getTime() - new Date(a.saleDate).getTime()));
+      setSaleDetails(sdData); setInventory(inv); setReleases(rel); setFormats(form);
+    } catch (err) { console.error(err); } finally { setLoading(false); }
   };
 
   useEffect(() => { loadData(); }, []);
 
-  const handleDelete = async (id: number) => {
-    if (!window.confirm("¿ALERTA MÁXIMA: Estás seguro de eliminar este pedido? Esto cancelará la transacción.")) return;
-    try {
-      await deleteSale(id, currentUser.username);
-      if (selectedSale?.id === id) setSelectedSale(null);
-      loadData();
-      alert("Pedido eliminado del registro.");
-    } catch (err: any) {
-      alert("Error al eliminar pedido: " + err.message);
-    }
+  const handleCancelOrder = async (id: number) => {
+    if (!window.confirm("¿Revocar y eliminar esta orden definitivamente del sistema?")) return;
+    try { await deleteSale(id, 'Admin'); if (selectedSale?.id === id) setSelectedSale(null); loadData(); alert("Orden revocada y eliminada."); } catch (err: any) { alert("Error: " + err.message); }
   };
 
   const getItemName = (invId: number) => {
     const inv = inventory.find(i => i.id === invId);
-    if (!inv) return 'Producto Desconocido';
-
-    const isMerch = merch.find(m => m.sku === inv.sku);
-    if (isMerch) return `${isMerch.name} [${isMerch.type}]`;
-
+    if (!inv) return 'Desconocido';
+    if (inv.sku && inv.sku.startsWith('MERCH')) return `Merch SKU: ${inv.sku}`;
     const release = releases.find(r => r.id === inv.releaseId);
     const format = formats.find(f => f.id === inv.physicalFormatId);
-    
-    return `${release?.title || 'Obra'} - ${format?.name || 'Formato'}`;
+    return `${release?.title || 'Obra'} [${format?.name || 'Fmt'}]`;
   };
 
-  const getSaleDetails = (saleId: number) => saleDetails.filter(sd => sd.saleId === saleId);
-
-  if (loading) return <p className="font-mono animate-pulse p-8">Recuperando bitácora de transacciones...</p>;
+  if (loading) return (<div className="flex flex-col items-center justify-center py-20"><div className="w-12 h-12 border-[3px] border-violet-500/30 border-t-violet-500 rounded-full animate-spin mb-4"></div></div>);
 
   return (
-    <div className="font-mono mt-8 max-w-5xl">
-      <h2 className="text-3xl font-black uppercase mb-6 inline-block bg-black text-white px-2 py-0.5">
-        CENTRO DE DISTRIBUCIÓN Y PEDIDOS
+    <div style={{animation: 'fadeIn 0.4s ease-out'}}>
+      <h2 className="text-2xl font-bold text-slate-100 mb-6 flex items-center gap-3">
+        <span className="w-1 h-6 bg-gradient-to-b from-violet-500 to-cyan-500 rounded-full"></span>
+        Monitor de Envíos y Órdenes
       </h2>
 
       {selectedSale && (
-        <div className="border-4 border-black p-6 bg-yellow-100 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] mb-8 ring-4 ring-black">
-          <div className="flex justify-between items-start border-b-4 border-black pb-4 mb-4">
+        <div className="bg-white/[0.06] border border-white/10 rounded-xl p-6 mb-8 max-w-4xl" style={{animation: 'slideUp 0.3s ease-out'}}>
+          <div className="flex justify-between items-start border-b border-white/[0.08] pb-3 mb-4">
             <div>
-              <h3 className="text-2xl font-black uppercase tracking-tighter">TICKET #{selectedSale.id}</h3>
-              <p className="font-bold text-sm">Cliente: {selectedSale.customerEmail}</p>
-              <p className="font-bold text-sm">Fecha: {new Date(selectedSale.saleDate).toLocaleString('es-MX')}</p>
+              <h3 className="text-xl font-bold text-slate-100">Factura #{selectedSale.id}</h3>
+              <p className="text-xs text-slate-500 mt-1">Cliente: <span className="text-slate-300 font-medium">{selectedSale.customerEmail}</span></p>
+              <p className="text-xs text-slate-500">Fecha: {new Date(selectedSale.saleDate).toLocaleString('es-MX')}</p>
             </div>
-            <button onClick={() => setSelectedSale(null)} className="bg-black text-white px-3 py-1 font-bold uppercase hover:bg-red-600 transition-colors cursor-pointer">
-              X CERRAR
+            <button onClick={() => setSelectedSale(null)} className="text-slate-400 hover:text-white bg-white/[0.06] hover:bg-white/[0.1] px-3 py-1.5 text-xs font-medium rounded-lg transition-all cursor-pointer">
+              Cerrar Panel
             </button>
           </div>
 
-          <h4 className="font-black mb-2 uppercase bg-black text-white px-2 py-0.5 inline-block text-sm">ARTÍCULOS EN EL PAQUETE</h4>
-          <ul className="divide-y-2 border-black border-2 border-black bg-white">
-            {getSaleDetails(selectedSale.id).map(detail => (
-              <li key={detail.id} className="p-3 flex justify-between items-center hover:bg-gray-100">
-                <div className="flex flex-col">
-                  <span className="font-black uppercase">{getItemName(detail.inventoryId)}</span>
-                  <span className="text-xs font-bold text-gray-500">
-                    ID Inventario: {detail.inventoryId} | Precio U.: ${detail.unitPrice}
-                  </span>
-                </div>
-                <div className="font-black text-lg">
-                  {detail.quantity} <span className="text-xs font-normal">unidades</span>
-                </div>
-              </li>
-            ))}
-          </ul>
-          
-          <div className="mt-4 text-right">
-            <span className="text-sm font-bold uppercase mr-2">Total Pagado:</span>
-            <span className="text-2xl font-black bg-green-300 border-2 border-black px-2">${selectedSale.totalAmount} MXN</span>
+          <table className="w-full text-left mb-6">
+            <thead>
+              <tr className="border-b border-white/[0.08] text-xs font-semibold uppercase text-slate-400 tracking-wider">
+                <th className="pb-2">Artículo</th>
+                <th className="pb-2 text-center">Cant.</th>
+                <th className="pb-2 text-right">P. Unitario</th>
+                <th className="pb-2 text-right">Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>
+              {saleDetails.filter(sd => sd.saleId === selectedSale.id).map((detail, i) => (
+                <tr key={detail.id} className={`border-b border-white/[0.06] text-sm ${i % 2 !== 0 ? 'bg-white/[0.02]' : ''}`}>
+                  <td className="py-3 text-slate-200">{getItemName(detail.inventoryId)}</td>
+                  <td className="py-3 text-center text-slate-300">{detail.quantity}</td>
+                  <td className="py-3 text-right text-slate-400">${detail.unitPrice}</td>
+                  <td className="py-3 text-right font-bold text-slate-200">${detail.quantity * detail.unitPrice}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          <div className="flex justify-between items-center pt-2">
+            <button onClick={() => handleCancelOrder(selectedSale.id)} className="text-xs font-medium text-red-400 hover:text-red-300 px-3 py-1.5 rounded-lg border border-red-500/20 hover:bg-red-500/10 transition-colors cursor-pointer uppercase">
+              Revocar y Eliminar Orden
+            </button>
+            <p className="text-lg font-bold text-slate-100">
+              Gran Total: <span className="gradient-text">${selectedSale.totalAmount} MXN</span>
+            </p>
           </div>
         </div>
       )}
 
-      {sales.length === 0 ? (
-        <p className="p-6 border-4 border-black border-dashed font-bold">No hay pedidos registrados en el sistema.</p>
-      ) : (
-        <div className="border-4 border-black bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-black text-white uppercase text-xs font-bold">
-                  <th className="p-3 border-r-2 border-white text-center">Folio</th>
-                  <th className="p-3 border-r-2 border-white">Fecha</th>
-                  <th className="p-3 border-r-2 border-white">Comprador</th>
-                  <th className="p-3 border-r-2 border-white text-center">Estado</th>
-                  <th className="p-3 border-r-2 border-white text-right">Monto</th>
-                  <th className="p-3 text-center">Acciones</th>
+      <div className="bg-white/[0.04] border border-white/10 rounded-xl overflow-hidden max-w-4xl">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-white/[0.08]">
+                <th className="p-4 text-xs font-semibold uppercase text-slate-400 tracking-wider w-24">Ticket</th>
+                <th className="p-4 text-xs font-semibold uppercase text-slate-400 tracking-wider">Fecha de Emisión</th>
+                <th className="p-4 text-xs font-semibold uppercase text-slate-400 tracking-wider">Cliente</th>
+                <th className="p-4 text-xs font-semibold uppercase text-slate-400 tracking-wider text-right">Monto</th>
+                <th className="p-4 text-xs font-semibold uppercase text-slate-400 tracking-wider text-center">Gestión</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sales.map((sale, idx) => (
+                <tr key={sale.id} className={`border-b border-white/[0.06] hover:bg-white/[0.04] transition-colors ${idx % 2 !== 0 ? 'bg-white/[0.02]' : ''}`}>
+                  <td className="p-4 text-center font-bold text-sm text-slate-300">#{sale.id}</td>
+                  <td className="p-4 text-sm text-slate-400">{new Date(sale.saleDate).toLocaleDateString('es-MX')}</td>
+                  <td className="p-4 text-sm font-medium text-slate-200">{sale.customerEmail}</td>
+                  <td className="p-4 text-right font-bold text-emerald-400 text-sm">${sale.totalAmount}</td>
+                  <td className="p-4 text-center space-x-2">
+                    <button onClick={() => { setSelectedSale(sale); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="text-xs font-medium text-violet-400 hover:text-violet-300 px-3 py-1.5 rounded-lg border border-violet-500/20 hover:bg-violet-500/10 transition-colors cursor-pointer">Ver Detalles</button>
+                    <button onClick={() => handleCancelOrder(sale.id)} className="text-xs font-medium text-red-400 hover:text-red-300 px-3 py-1.5 rounded-lg border border-red-500/20 hover:bg-red-500/10 transition-colors cursor-pointer">Revocar</button>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {sales.map((sale, idx) => (
-                  <tr key={sale.id} className={`border-b-2 border-black hover:bg-gray-100 transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-[#f4f4f0]'}`}>
-                    <td className="p-3 border-r-2 border-black text-center font-black">#{sale.id}</td>
-                    <td className="p-3 border-r-2 border-black text-sm font-bold">{new Date(sale.saleDate).toLocaleDateString('es-MX')}</td>
-                    <td className="p-3 border-r-2 border-black font-bold uppercase truncate max-w-[150px]">{sale.customerEmail}</td>
-                    <td className="p-3 border-r-2 border-black text-center">
-                      <span className="bg-green-300 border-2 border-black px-2 py-0.5 text-xs font-black uppercase tracking-tight">
-                        {sale.status}
-                      </span>
-                    </td>
-                    <td className="p-3 border-r-2 border-black text-right font-black">
-                      ${sale.totalAmount.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
-                    </td>
-                    <td className="p-3 text-center space-x-2 text-xs">
-                      <button 
-                        onClick={() => { setSelectedSale(sale); window.scrollTo({ top: 0, behavior: 'smooth' }); }} 
-                        className="font-bold underline uppercase hover:bg-black hover:text-white px-1 cursor-pointer"
-                      >
-                        Ver Detalles
-                      </button>
-                      <button 
-                        onClick={() => handleDelete(sale.id)} 
-                        className="font-bold text-red-600 underline uppercase hover:bg-red-600 hover:text-white px-1 cursor-pointer"
-                      >
-                        Eliminar
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+              ))}
+            </tbody>
+          </table>
         </div>
-      )}
+      </div>
     </div>
   );
 }
