@@ -1,6 +1,6 @@
 import type { UserDto, UserLoginDto, UserCreateDto, Response } from '../types/dtos';
 
-const API_URL = 'http://localhost:5021/api'; 
+import { API_URL } from './config'; 
 
 export const loginUser = async (credentials: UserLoginDto): Promise<UserDto> => {
   const response = await fetch(`${API_URL}/users/login`, {

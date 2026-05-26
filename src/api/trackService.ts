@@ -1,6 +1,6 @@
 import type { TrackDto, TrackCreateDto, Response } from '../types/dtos';
 
-const API_URL = 'http://localhost:5021/api';
+import { API_URL } from './config';
 
 export const getTracks = async (): Promise<TrackDto[]> => {
   const response = await fetch(`${API_URL}/tracks`);

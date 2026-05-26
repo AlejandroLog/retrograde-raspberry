@@ -1,6 +1,6 @@
 import type { ReleaseDto, ReleaseCreateDto, Response } from '../types/dtos';
 
-const API_URL = 'http://localhost:5021/api'; 
+import { API_URL } from './config'; 
 
 export const getReleases = async (): Promise<ReleaseDto[]> => {
   const response = await fetch(`${API_URL}/releases`);
