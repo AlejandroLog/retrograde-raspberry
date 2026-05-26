@@ -126,6 +126,12 @@ body {
   }
 }
 
+  /* Fix for combobox options in dark mode */
+  select option {
+    background-color: #0a0a0f;
+    color: #f1f5f9;
+  }
+
 /* ═══════════════════════════════════════════
    CUSTOM UTILITIES
    ═══════════════════════════════════════════ */

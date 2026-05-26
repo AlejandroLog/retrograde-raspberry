@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { loginUser, registerUser } from '../api/userService';
 import type { UserDto } from '../types/dtos';
 
@@ -9,6 +9,14 @@ export default function Auth({ onLogin }: { onLogin: (user: UserDto) => void }) 
   const [role, setRole] = useState('cliente'); 
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showSplash, setShowSplash] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+    }, 2800);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,6 +42,50 @@ export default function Auth({ onLogin }: { onLogin: (user: UserDto) => void }) 
     }
   };
 
+  if (showSplash) {
+    return (
+      <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#0a0a0f] text-white overflow-hidden" style={{ animation: 'fadeOut 0.5s ease-out 2.3s forwards' }}>
+        {/* Background Ambient Glow */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-violet-900/20 via-[#0a0a0f] to-[#0a0a0f]"></div>
+        
+        <div className="relative z-10 flex flex-col items-center" style={{ animation: 'fadeIn 0.5s ease-out' }}>
+          {/* Abstract Spinning Vinyl / Halo */}
+          <div className="relative w-40 h-40 flex items-center justify-center mb-10">
+            {/* Outer spinning ring */}
+            <div className="absolute inset-0 rounded-full border-[3px] border-transparent border-t-cyan-400 border-b-violet-500 animate-spin shadow-[0_0_30px_rgba(34,211,238,0.2)]" style={{ animationDuration: '1.5s' }}></div>
+            {/* Inner spinning ring (opposite direction) */}
+            <div className="absolute inset-4 rounded-full border-[2px] border-transparent border-l-violet-400 border-r-cyan-500 animate-[spin_2s_linear_infinite_reverse] shadow-[0_0_20px_rgba(139,92,246,0.3)]"></div>
+            
+            {/* Center core */}
+            <div className="w-12 h-12 rounded-full bg-[#0a0a0f] border border-white/10 flex items-center justify-center relative z-20 shadow-[0_0_15px_rgba(0,0,0,0.5)]">
+               <div className="w-full h-full rounded-full absolute bg-violet-500/20 animate-ping"></div>
+               <div className="w-3 h-3 rounded-full bg-cyan-400 shadow-[0_0_15px_rgba(34,211,238,1)]"></div>
+            </div>
+          </div>
+          
+          {/* Branding */}
+          <div className="overflow-hidden mb-4">
+            <h1 className="text-5xl font-black tracking-[0.2em] uppercase text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-white to-violet-400 drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]" style={{ animation: 'slideUp 0.8s ease-out' }}>
+              Sonic Fock
+            </h1>
+          </div>
+          
+          {/* Loading Indicator */}
+          <div className="flex items-center gap-3 mt-4" style={{ animation: 'fadeIn 1s ease-out 0.5s both' }}>
+            <div className="flex gap-1">
+              <span className="w-1.5 h-4 bg-cyan-400 rounded-full animate-[bounce_1s_infinite_0ms]"></span>
+              <span className="w-1.5 h-6 bg-violet-500 rounded-full animate-[bounce_1s_infinite_200ms]"></span>
+              <span className="w-1.5 h-4 bg-cyan-400 rounded-full animate-[bounce_1s_infinite_400ms]"></span>
+            </div>
+            <span className="text-slate-400 font-medium tracking-[0.3em] text-xs uppercase ml-2">
+              Sintonizando...
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen bg-[#0a0a0f] text-slate-200" style={{animation: 'fadeIn 0.5s ease-out'}}>
       {/* Left side: Image Banner */}
@@ -56,7 +108,6 @@ export default function Auth({ onLogin }: { onLogin: (user: UserDto) => void }) 
         </div>
       </div>
       
-      {/* Right side: Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 relative z-20">
         <div className="w-full max-w-md">
           
@@ -69,7 +120,7 @@ export default function Auth({ onLogin }: { onLogin: (user: UserDto) => void }) 
 
           <div className="neo-card p-8 bg-white/[0.02]">
             <h2 className="text-3xl font-bold uppercase tracking-tight mb-6 border-b border-white/10 pb-4 flex justify-between items-center text-slate-100">
-              <span className="gradient-text">{isLoginView ? 'Acceso' : 'Nuevo Recluta'}</span>
+              <span className="gradient-text">{isLoginView ? 'Acceder' : 'Nuevo Usuario'}</span>
               <span className="text-[10px] bg-violet-500/20 text-violet-300 px-2.5 py-1 rounded-full font-medium tracking-normal normal-case border border-violet-500/20">v1.0.0</span>
             </h2>
 
@@ -142,7 +193,7 @@ export default function Auth({ onLogin }: { onLogin: (user: UserDto) => void }) 
                            hover:bg-white/[0.12] hover:text-white hover:border-white/20
                            transition-all duration-300 cursor-pointer uppercase"
               >
-                {isLoginView ? 'Solicitar Ingreso' : 'Iniciar Sesión'}
+                {isLoginView ? 'Crear Cuenta' : 'Iniciar Sesión'}
               </button>
             </div>
           </div>

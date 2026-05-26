@@ -161,41 +161,98 @@ export default function CustomerDashboard({ currentUser, onLogout }: { currentUs
 
       case 'merch':
         return (
-          <div className="mt-8" style={{animation: 'fadeIn 0.4s ease-out'}}>
-            <h2 className="text-2xl font-bold text-slate-100 mb-8 flex items-center gap-3">
-              <span className="w-1 h-6 bg-gradient-to-b from-violet-500 to-cyan-500 rounded-full"></span>
-              Merchandising Oficial
-            </h2>
+          <div className="mt-8" style={{animation: 'fadeIn 0.5s ease-out'}}>
+            {/* Merch Hero Banner */}
+            <div className="w-full h-48 md:h-64 rounded-3xl mb-12 relative overflow-hidden flex items-center justify-center group shadow-2xl shadow-violet-900/20">
+              <div className="absolute inset-0 bg-gradient-to-r from-violet-900/80 via-black/60 to-cyan-900/80 z-10 mix-blend-multiply"></div>
+              <img src="/assets/vinyl_stack.png" alt="Merchandising" className="absolute inset-0 w-full h-full object-cover opacity-40 group-hover:scale-105 transition-transform duration-700 blur-[2px]" />
+              <div className="relative z-20 text-center px-4">
+                <span className="text-cyan-400 font-bold tracking-[0.2em] text-xs uppercase mb-3 block drop-shadow-md">Exclusivo</span>
+                <h1 className="text-4xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-violet-200 to-cyan-200 drop-shadow-lg mb-4">
+                  Mercancía Oficial
+                </h1>
+                <p className="text-slate-300 text-sm md:text-base max-w-2xl mx-auto font-medium">
+                  Viste el sonido. Apoya a tus bandas favoritas con indumentaria y coleccionables de edición limitada.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-2xl font-bold text-slate-100 flex items-center gap-3">
+                <span className="w-1.5 h-6 bg-gradient-to-b from-cyan-400 to-violet-500 rounded-full shadow-[0_0_10px_rgba(34,211,238,0.5)]"></span>
+                Colección Actual
+              </h2>
+              <span className="text-sm font-medium text-slate-500 bg-white/[0.05] px-4 py-1.5 rounded-full border border-white/[0.05]">
+                {allMerch.length} Artículos
+              </span>
+            </div>
+
             {allMerch.length === 0 ? (
-              <p className="border border-dashed border-white/10 rounded-xl p-8 text-center text-slate-500 text-sm">No hay mercancía disponible en los estantes de la disquera en este momento.</p>
+              <div className="border border-dashed border-white/10 rounded-3xl p-16 text-center bg-white/[0.02] backdrop-blur-sm">
+                <div className="w-16 h-16 mx-auto bg-white/[0.05] rounded-full flex items-center justify-center mb-4">
+                  <span className="text-2xl">👕</span>
+                </div>
+                <p className="text-slate-400 font-medium">No hay mercancía disponible en los estantes de la disquera en este momento.</p>
+              </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8">
                 {allMerch.map(m => (
-                  <div key={m.id} className="bg-white/[0.04] border border-white/[0.08] rounded-xl overflow-hidden hover:-translate-y-1 hover:border-violet-500/30 hover:shadow-lg hover:shadow-violet-500/10 transition-all duration-300 flex flex-col">
-                    <div className="aspect-square bg-white/[0.06] overflow-hidden">
+                  <div key={m.id} className="group bg-[#12121a] rounded-2xl overflow-hidden border border-white/[0.04] hover:border-cyan-500/30 hover:shadow-[0_0_30px_rgba(34,211,238,0.15)] transition-all duration-500 flex flex-col relative">
+                    
+                    {/* Image Area */}
+                    <div className="aspect-[4/5] bg-gradient-to-b from-white/[0.05] to-transparent overflow-hidden relative p-6 flex items-center justify-center">
+                      <div className="absolute inset-0 bg-violet-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10 pointer-events-none"></div>
+                      
+                      {/* Badge */}
+                      <div className="absolute top-4 left-4 z-20 flex flex-col gap-2">
+                        <span className="bg-black/60 backdrop-blur-md text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full border border-white/10">
+                          {m.type}
+                        </span>
+                        {m.availableStock > 0 && m.availableStock <= 5 && (
+                          <span className="bg-red-500/80 backdrop-blur-md text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full border border-red-400/30 flex items-center gap-1 shadow-[0_0_10px_rgba(239,68,68,0.5)]">
+                            <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></span>
+                            ¡Últimos {m.availableStock}!
+                          </span>
+                        )}
+                      </div>
+
                       {m.photoUrl ? (
-                        <img src={m.photoUrl} className="w-full h-full object-cover" alt={m.name} />
+                        <img src={m.photoUrl} className="w-full h-full object-contain group-hover:scale-110 group-hover:-translate-y-2 transition-all duration-700 drop-shadow-2xl" alt={m.name} />
                       ) : (
-                        <img src="/assets/vinyl_stack.png" className="w-full h-full object-cover opacity-50 grayscale" alt="Fallback Merch" />
+                        <div className="text-6xl group-hover:scale-110 group-hover:-translate-y-2 transition-all duration-700 drop-shadow-2xl">
+                          {m.type.toLowerCase().includes('playera') || m.type.toLowerCase().includes('ropa') ? '👕' : '🛍️'}
+                        </div>
                       )}
                     </div>
-                    <div className="p-4 flex-grow flex flex-col justify-between">
-                      <div>
-                        <span className="text-[10px] font-semibold uppercase bg-violet-500/20 text-violet-300 px-2.5 py-1 rounded-full border border-violet-500/20">{m.type}</span>
-                        <h3 className="font-bold text-slate-100 text-lg mt-3 break-words">{m.name}</h3>
-                        <p className="text-xs text-slate-500 mt-1">Banda: {getBandName(m.artistId)}</p>
+                    
+                    {/* Content Area */}
+                    <div className="p-5 flex-grow flex flex-col bg-gradient-to-t from-black/80 to-transparent">
+                      <div className="mb-4">
+                        <p className="text-cyan-400 text-xs font-semibold mb-1 uppercase tracking-wide">{getBandName(m.artistId)}</p>
+                        <h3 className="font-bold text-white text-lg leading-tight group-hover:text-cyan-300 transition-colors">{m.name}</h3>
                       </div>
-                      <div className="mt-5 border-t border-white/[0.06] pt-3 flex items-center justify-between">
-                        <span className="font-bold text-slate-100">${m.publicPrice} MXN</span>
+                      
+                      <div className="mt-auto flex items-end justify-between">
+                        <div>
+                          <p className="text-slate-500 text-xs mb-0.5">Precio Oficial</p>
+                          <span className="font-black text-xl text-white tracking-tight">${m.publicPrice} <span className="text-sm font-medium text-slate-500">MXN</span></span>
+                        </div>
+                        
                         {m.availableStock > 0 ? (
                           <button 
                             onClick={() => addMerchToCart(m)}
-                            className="bg-white/[0.08] text-emerald-400 font-semibold text-xs uppercase px-3 py-2 rounded-lg hover:bg-emerald-500/20 hover:border-emerald-500/20 border border-white/10 transition-all duration-300 cursor-pointer"
+                            className="w-12 h-12 rounded-full bg-white/[0.05] border border-white/10 text-white flex items-center justify-center hover:bg-cyan-500 hover:border-cyan-400 hover:text-black hover:shadow-[0_0_20px_rgba(34,211,238,0.4)] hover:scale-110 transition-all duration-300 group/btn"
+                            title="Añadir al carrito"
                           >
-                            + Llevar
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 group-hover/btn:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 hidden group-hover/btn:block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
                           </button>
                         ) : (
-                          <span className="bg-red-500/15 text-red-400 border border-red-500/20 px-3 py-1 text-xs font-medium rounded-full">AGOTADO</span>
+                          <span className="bg-red-500/10 text-red-400 border border-red-500/20 px-4 py-2 text-xs font-bold tracking-wider rounded-lg uppercase">Agotado</span>
                         )}
                       </div>
                     </div>
