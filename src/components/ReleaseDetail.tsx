@@ -77,7 +77,7 @@ export default function ReleaseDetail({
             {release.coverUrl ? (
               <img src={release.coverUrl} alt="Portada" className="w-full h-full object-cover" />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-slate-600 text-sm">SIN PORTADA</div>
+              <img src="/assets/turntable.png" className="w-full h-full object-cover opacity-60 grayscale" alt="Fallback Cover" />
             )}
           </div>
           

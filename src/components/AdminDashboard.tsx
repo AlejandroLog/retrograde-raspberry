@@ -10,7 +10,7 @@ import AdminOrders from './AdminOrders';
 
 type AdminView = 'resumen' | 'usuarios' | 'inventario' | 'formatos' | 'generos' | 'merch' | 'ordenes';
 
-export default function AdminDashboard({ currentUser }: { currentUser: UserDto }) {
+export default function AdminDashboard({ currentUser, onLogout }: { currentUser: UserDto, onLogout: () => void }) {
   const [currentView, setCurrentView] = useState<AdminView>('resumen');
 
   const getNavClass = (viewName: AdminView) => {
@@ -44,6 +44,8 @@ export default function AdminDashboard({ currentUser }: { currentUser: UserDto }
           <button onClick={() => setCurrentView('generos')} className={getNavClass('generos')}>Géneros</button>
           <button onClick={() => setCurrentView('merch')} className={getNavClass('merch')}>Aprobación Merch</button>
           <button onClick={() => setCurrentView('ordenes')} className={getNavClass('ordenes')}>Gestión Órdenes</button>
+          <div className="flex-grow"></div>
+          <button onClick={onLogout} className="px-4 py-2.5 font-semibold text-sm rounded-lg transition-all duration-300 cursor-pointer whitespace-nowrap text-red-400 hover:text-white hover:bg-red-500/20 border border-transparent hover:border-red-500/30">Salir</button>
         </div>
       </div>
       

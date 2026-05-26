@@ -33,29 +33,6 @@ export default function AppRouter() {
     return <Auth onLogin={handleLogin} />;
   }
 
-  const renderNavLinks = () => {
-    switch (currentUser.role.toLowerCase()) {
-      case 'cliente':
-        return (
-          <>
-            <span className="text-slate-400 hover:text-white px-3 py-1.5 rounded-lg hover:bg-white/[0.06] cursor-pointer transition-all duration-300 text-sm font-medium">Catálogo</span>
-          </>
-        );
-      case 'artista':
-        return null; 
-      case 'admin':
-        return (
-          <>
-            <span className="text-slate-400 hover:text-white px-3 py-1.5 rounded-lg hover:bg-white/[0.06] cursor-pointer transition-all duration-300 text-sm font-medium">Dashboard</span>
-            <span className="text-slate-400 hover:text-white px-3 py-1.5 rounded-lg hover:bg-white/[0.06] cursor-pointer transition-all duration-300 text-sm font-medium">Inventario</span>
-            <span className="text-slate-400 hover:text-white px-3 py-1.5 rounded-lg hover:bg-white/[0.06] cursor-pointer transition-all duration-300 text-sm font-medium">Usuarios</span>
-          </>
-        );
-      default:
-        return null;
-    }
-  };
-
   const renderDashboard = () => {
     switch (currentUser.role.toLowerCase()) {
       case 'cliente':
@@ -63,7 +40,7 @@ export default function AppRouter() {
       case 'artista':
         return <ArtistDashboard currentUser={currentUser} onLogout={handleLogout} />; 
       case 'admin':
-        return <AdminDashboard currentUser={currentUser} />;
+        return <AdminDashboard currentUser={currentUser} onLogout={handleLogout} />;
       default:
         return (
           <div className="p-8 text-red-400 font-medium animate-pulse">
@@ -78,19 +55,13 @@ export default function AppRouter() {
       <nav className="bg-[#0a0a0f]/80 backdrop-blur-xl border-b border-white/[0.06] sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
           
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-violet-500/20 flex items-center justify-center border border-violet-500/30">
-                <div className="w-2.5 h-2.5 rounded-full bg-cyan-400"></div>
-              </div>
-              <span className="font-bold text-xl tracking-tight text-white drop-shadow-md">
-                Sonic Fock
-              </span>
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full bg-violet-500/20 flex items-center justify-center border border-violet-500/30">
+              <div className="w-2.5 h-2.5 rounded-full bg-cyan-400"></div>
             </div>
-            
-            <div className="hidden md:flex items-center gap-1">
-              {renderNavLinks()}
-            </div>
+            <span className="font-bold text-xl tracking-tight text-white drop-shadow-md">
+              Sonic Fock
+            </span>
           </div>
 
           <div className="flex items-center gap-3">
@@ -108,7 +79,7 @@ export default function AppRouter() {
         </div>
       </nav>
 
-      <main className="flex-grow max-w-6xl mx-auto w-full" style={{animation: 'fadeIn 0.4s ease-out'}}>
+      <main className="flex-grow max-w-6xl mx-auto w-full p-4" style={{animation: 'fadeIn 0.4s ease-out'}}>
         {renderDashboard()}
       </main>
     </div>
