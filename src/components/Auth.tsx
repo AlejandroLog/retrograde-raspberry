@@ -139,7 +139,7 @@ export default function Auth({ onLogin }: { onLogin: (user: UserDto) => void }) 
                   required 
                   value={username} 
                   onChange={e => setUsername(e.target.value)}
-                  placeholder="nombre_proyecto"
+                  placeholder="nombre_proyecto_o_usuario"
                   className="neo-input"
                 />
               </div>
