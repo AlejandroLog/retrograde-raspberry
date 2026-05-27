@@ -31,7 +31,7 @@ export default function AdminGenres() {
 
   const handleDelete = async (id: number) => {
     if(!window.confirm("¿Seguro que deseas eliminar este género musical? Podría afectar a artistas vinculados.")) return;
-    try { await deleteMusicalGenre(id); loadData(); } catch (err: any) { alert("Error: " + err.message); }
+    try { await deleteMusicalGenre(id, 'Admin'); loadData(); } catch (err: any) { alert("Error: " + err.message); }
   };
 
   if (loading) return (<div className="flex flex-col items-center justify-center py-20"><div className="w-12 h-12 border-[3px] border-violet-500/30 border-t-violet-500 rounded-full animate-spin mb-4"></div></div>);

@@ -20,7 +20,7 @@ export default function AdminSummary() {
       setTotalArtists(users.filter(u => u.role.toLowerCase() === 'artista').length);
       setTotalReleases(releases.length);
       
-      const stock = inventory.reduce((sum, item) => sum + item.stock, 0);
+      const stock = inventory.reduce((sum, item) => sum + item.availableStock, 0);
       setTotalStock(stock);
 
       const earnings = sales.filter(s => s.status === 'Pagado').reduce((sum, item) => sum + item.totalAmount, 0);
