@@ -265,42 +265,135 @@ export default function CustomerDashboard({ currentUser, onLogout }: { currentUs
 
       case 'cart':
         return (
-          <div className="mt-8 max-w-3xl mx-auto" style={{animation: 'fadeIn 0.4s ease-out'}}>
-            <h2 className="text-2xl font-bold text-slate-100 mb-8 flex items-center gap-3">
-              <span className="w-1 h-6 bg-gradient-to-b from-violet-500 to-cyan-500 rounded-full"></span>
-              Carrito de Compras
-            </h2>
+          <div className="mt-8 max-w-4xl mx-auto" style={{animation: 'fadeIn 0.5s ease-out'}}>
+            <div className="flex items-center justify-between mb-8 border-b border-white/[0.05] pb-6">
+              <h2 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-violet-500 flex items-center gap-4 drop-shadow-[0_0_15px_rgba(139,92,246,0.3)]">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                </svg>
+                Tu Carrito
+              </h2>
+              <span className="bg-white/[0.05] text-slate-300 px-4 py-1.5 rounded-full text-sm font-semibold border border-white/10 shadow-[0_0_10px_rgba(255,255,255,0.05)]">
+                {validCartItems.reduce((s, i) => s + i.quantity, 0)} Artículos
+              </span>
+            </div>
+
             {cart.length === 0 ? (
-              <p className="border border-dashed border-white/10 rounded-xl p-8 text-center text-slate-500 text-sm">El carrito está vacío.</p>
-            ) : (
-              <div className="bg-white/[0.04] border border-white/10 rounded-xl p-6">
-                <ul className="divide-y divide-white/[0.06] mb-6">
-                  {cart.map((item, idx) => (
-                    <li key={idx} className="py-4 flex justify-between items-center">
-                      <div>
-                        <p className="font-semibold text-slate-100 text-lg">{item.releaseTitle}</p>
-                        <p className="text-sm text-slate-500">
-                          Tipo/Formato: {item.formatName} · Cantidad: {item.quantity}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <span className="font-bold text-slate-100">${item.price * item.quantity} MXN</span>
-                        <button onClick={() => item.inventoryId && removeFromCart(item.inventoryId)} className="text-red-400 font-medium text-sm hover:bg-red-500/10 px-2 py-1 rounded-lg transition-colors cursor-pointer">Eliminar</button>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-                <div className="border-t border-white/10 pt-4 flex justify-between items-center mb-6">
-                  <span className="font-bold text-xl text-slate-100">Total:</span>
-                  <span className="font-bold text-2xl gradient-text">${cartTotal} MXN</span>
+              <div className="relative overflow-hidden rounded-3xl p-16 text-center bg-[#12121a] border border-white/[0.04] shadow-[0_0_40px_rgba(0,0,0,0.5)]">
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-violet-600/10 blur-[80px] rounded-full pointer-events-none"></div>
+                <div className="relative z-10 flex flex-col items-center">
+                  <div className="w-24 h-24 rounded-full bg-white/[0.03] border border-white/10 flex items-center justify-center mb-6 shadow-inner">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-2xl font-bold text-slate-200 mb-2">Tu carrito está vacío</h3>
+                  <p className="text-slate-500 font-medium max-w-sm">Explora nuestro catálogo global o la mercancía oficial y apoya a la escena independiente.</p>
+                  <button onClick={() => handleNavClick('home')} className="mt-8 px-8 py-3 rounded-xl bg-white/[0.05] border border-white/10 text-cyan-400 font-bold hover:bg-white/[0.1] hover:border-cyan-500/50 hover:shadow-[0_0_20px_rgba(34,211,238,0.2)] transition-all duration-300 cursor-pointer">
+                    Descubrir Música
+                  </button>
                 </div>
-                <button 
-                  onClick={handleCheckout}
-                  disabled={isProcessing || validCartItems.length === 0}
-                  className="w-full neo-btn-primary"
-                >
-                  {isProcessing ? 'PROCESANDO COMPRA...' : 'PROCEDER AL PAGO →'}
-                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="lg:col-span-2">
+                  <div className="bg-[#12121a]/80 backdrop-blur-xl border border-white/[0.05] rounded-3xl overflow-hidden shadow-2xl">
+                    <div className="bg-white/[0.02] px-6 py-4 border-b border-white/[0.05] flex justify-between items-center">
+                      <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Detalle de Compra</span>
+                    </div>
+                    <ul className="divide-y divide-white/[0.05]">
+                      {cart.map((item, idx) => (
+                        <li key={idx} className="p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:bg-white/[0.02] transition-colors group">
+                          <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-500/20 to-cyan-500/20 border border-white/10 flex items-center justify-center flex-shrink-0">
+                              <span className="text-xl">{item.formatName.toLowerCase().includes('vinil') ? '💿' : item.formatName.toLowerCase().includes('cd') ? '💽' : '👕'}</span>
+                            </div>
+                            <div>
+                              <p className="font-bold text-slate-100 text-lg group-hover:text-cyan-300 transition-colors">{item.releaseTitle}</p>
+                              <div className="flex items-center gap-3 mt-1">
+                                <span className="text-xs font-semibold text-violet-300 bg-violet-500/10 px-2 py-0.5 rounded border border-violet-500/20 uppercase tracking-wider">{item.formatName}</span>
+                                <span className="text-sm text-slate-500 font-medium">Cant: {item.quantity}</span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-6 w-full sm:w-auto justify-between sm:justify-end border-t border-white/5 sm:border-t-0 pt-4 sm:pt-0 mt-2 sm:mt-0">
+                            <span className="font-black text-white text-xl">${item.price * item.quantity} <span className="text-xs text-slate-500 font-medium">MXN</span></span>
+                            <button 
+                              onClick={() => item.inventoryId && removeFromCart(item.inventoryId)} 
+                              className="w-10 h-10 rounded-full flex items-center justify-center text-red-400 hover:bg-red-500/10 hover:text-red-300 border border-transparent hover:border-red-500/20 transition-all cursor-pointer"
+                              title="Eliminar"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+
+                <div className="lg:col-span-1">
+                  <div className="bg-gradient-to-b from-[#1a1a24] to-[#0a0a0f] border border-white/[0.08] rounded-3xl p-6 shadow-[0_10px_40px_rgba(0,0,0,0.5)] sticky top-24">
+                    <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      Resumen del Pedido
+                    </h3>
+                    
+                    <div className="space-y-4 mb-6">
+                      <div className="flex justify-between text-sm text-slate-400 font-medium">
+                        <span>Subtotal</span>
+                        <span className="text-slate-200">${cartTotal} MXN</span>
+                      </div>
+                      <div className="flex justify-between text-sm text-slate-400 font-medium">
+                        <span>Envío (Estándar)</span>
+                        <span className="text-emerald-400">Gratis</span>
+                      </div>
+                      <div className="flex justify-between text-sm text-slate-400 font-medium pb-4 border-b border-white/[0.06]">
+                        <span>Impuestos</span>
+                        <span className="text-slate-200">Incluidos</span>
+                      </div>
+                      <div className="flex justify-between items-end pt-2">
+                        <span className="font-bold text-slate-300">Total</span>
+                        <span className="font-black text-3xl text-transparent bg-clip-text bg-gradient-to-r from-white to-cyan-200 drop-shadow-md">
+                          ${cartTotal} <span className="text-sm text-slate-500 font-bold tracking-widest">MXN</span>
+                        </span>
+                      </div>
+                    </div>
+
+                    <button 
+                      onClick={handleCheckout}
+                      disabled={isProcessing || validCartItems.length === 0}
+                      className="w-full relative group overflow-hidden rounded-xl bg-white/[0.05] border border-white/10 p-1 transition-all hover:border-cyan-400/50 hover:shadow-[0_0_20px_rgba(34,211,238,0.3)] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-white/10 disabled:hover:shadow-none cursor-pointer"
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-r from-violet-600 via-cyan-500 to-violet-600 opacity-0 group-hover:opacity-20 transition-opacity duration-500"></div>
+                      <div className="bg-[#0a0a0f] rounded-lg px-6 py-4 flex items-center justify-center gap-2 relative z-10 transition-colors group-hover:bg-[#12121a]">
+                        {isProcessing ? (
+                          <>
+                            <div className="w-5 h-5 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
+                            <span className="font-bold tracking-widest text-cyan-400 text-sm">PROCESANDO...</span>
+                          </>
+                        ) : (
+                          <>
+                            <span className="font-bold tracking-widest text-white text-sm">PAGAR AHORA</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-cyan-400 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                            </svg>
+                          </>
+                        )}
+                      </div>
+                    </button>
+                    
+                    <div className="mt-6 flex items-center justify-center gap-3 opacity-60 grayscale hover:grayscale-0 transition-all duration-300">
+                      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Visa_Inc._logo.svg/200px-Visa_Inc._logo.svg.png" alt="Visa" className="h-3 object-contain" />
+                      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Mastercard-logo.svg/200px-Mastercard-logo.svg.png" alt="Mastercard" className="h-4 object-contain" />
+                      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/PayPal.svg/200px-PayPal.svg.png" alt="PayPal" className="h-4 object-contain" />
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
           </div>

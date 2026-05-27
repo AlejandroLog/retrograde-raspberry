@@ -51,37 +51,46 @@ export default function AppRouter() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <nav className="bg-[#0a0a0f]/80 backdrop-blur-xl border-b border-white/[0.06] sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
-          
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-violet-500/20 flex items-center justify-center border border-violet-500/30">
-              <div className="w-2.5 h-2.5 rounded-full bg-cyan-400"></div>
+    <div className="min-h-screen flex flex-col relative overflow-hidden bg-[#0a0a0f]">
+      {/* Global Ambient Background */}
+      <div className="fixed inset-0 z-0 pointer-events-none">
+        <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-violet-600/10 blur-[120px] rounded-full mix-blend-screen animate-[pulse-glow_8s_ease-in-out_infinite_alternate]"></div>
+        <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-cyan-600/10 blur-[150px] rounded-full mix-blend-screen animate-[pulse-glow_12s_ease-in-out_infinite_alternate-reverse]"></div>
+        <div className="absolute top-[40%] right-[20%] w-[30%] h-[30%] bg-fuchsia-600/5 blur-[100px] rounded-full mix-blend-screen animate-[pulse-glow_10s_ease-in-out_infinite_alternate]"></div>
+      </div>
+
+      <div className="relative z-10 flex flex-col min-h-screen">
+        <nav className="bg-[#0a0a0f]/80 backdrop-blur-xl border-b border-white/[0.06] sticky top-0 z-50">
+          <div className="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
+            
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-violet-500/20 flex items-center justify-center border border-violet-500/30">
+                <div className="w-2.5 h-2.5 rounded-full bg-cyan-400"></div>
+              </div>
+              <span className="font-bold text-xl tracking-tight text-white drop-shadow-md">
+                Sonic Fock
+              </span>
             </div>
-            <span className="font-bold text-xl tracking-tight text-white drop-shadow-md">
-              Sonic Fock
-            </span>
+
+            <div className="flex items-center gap-3">
+              <span className="bg-white/[0.08] text-slate-300 px-3 py-1.5 rounded-full text-xs font-medium border border-white/10">
+                {currentUser.username} · <span className="text-violet-400">{currentUser.role}</span>
+              </span>
+              <button 
+                onClick={handleLogout}
+                className="text-slate-400 border border-white/10 px-4 py-1.5 rounded-lg text-xs font-medium hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/20 transition-all duration-300 cursor-pointer uppercase"
+              >
+                Salir
+              </button>
+            </div>
+
           </div>
+        </nav>
 
-          <div className="flex items-center gap-3">
-            <span className="bg-white/[0.08] text-slate-300 px-3 py-1.5 rounded-full text-xs font-medium border border-white/10">
-              {currentUser.username} · <span className="text-violet-400">{currentUser.role}</span>
-            </span>
-            <button 
-              onClick={handleLogout}
-              className="text-slate-400 border border-white/10 px-4 py-1.5 rounded-lg text-xs font-medium hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/20 transition-all duration-300 cursor-pointer uppercase"
-            >
-              Salir
-            </button>
-          </div>
-
-        </div>
-      </nav>
-
-      <main className="flex-grow max-w-6xl mx-auto w-full p-4" style={{animation: 'fadeIn 0.4s ease-out'}}>
-        {renderDashboard()}
-      </main>
+        <main className="flex-grow max-w-6xl mx-auto w-full p-4" style={{animation: 'fadeIn 0.4s ease-out'}}>
+          {renderDashboard()}
+        </main>
+      </div>
     </div>
   );
 }

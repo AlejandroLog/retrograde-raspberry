@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { MerchandisingDto, ArtistDto, InventoryDto } from '../types/dtos';
-import { getMerch, updateMerch } from '../api/merchService';
+import { getMerch, updateMerch, approveMerch } from '../api/merchService';
 import { getArtists } from '../api/artistService';
 import { createInventory } from '../api/shopService';
 
@@ -27,13 +27,16 @@ export default function AdminMerch() {
   const getBandName = (id: number) => { const a = artists.find(x => x.id === id); return a ? a.bandName : 'Desconocido'; };
 
   const handleApprove = async () => {
-    if (!selectedMerch || !approvalSku || !approvalStock) return alert("Faltan datos de aprobación");
-    const previewPublicPrice = selectedMerch.artistPrice * 1.25;
+    if (!selectedMerch || !approvalStock) return alert("Faltan datos de aprobación");
+    
+    // Auto-generar SKU si está en blanco
+    const finalSku = approvalSku.trim() || `MERCH-${selectedMerch.id}-${Date.now().toString().slice(-4)}`;
+    
     try {
-      await updateMerch(selectedMerch.id, { ...selectedMerch, status: 'Aceptado', sku: approvalSku, publicPrice: previewPublicPrice, availableStock: parseInt(approvalStock) });
-      await createInventory({ releaseId: 0, physicalFormatId: 0, stock: parseInt(approvalStock), salePrice: previewPublicPrice, sku: approvalSku });
-      alert("Mercancía aprobada y registrada en inventario maestro.");
+      await approveMerch(selectedMerch.id, { availableStock: parseInt(approvalStock), sku: finalSku });
+      alert("Mercancía aprobada y registrada en inventario maestro con SKU: " + finalSku);
       setSelectedMerch(null);
+      setApprovalSku('');
       loadData();
     } catch (err: any) { alert("Error: " + err.message); }
   };

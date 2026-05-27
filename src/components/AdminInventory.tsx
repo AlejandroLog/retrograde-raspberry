@@ -12,6 +12,7 @@ export default function AdminInventory() {
   const [physicalFormatId, setPhysicalFormatId] = useState('');
   const [stock, setStock] = useState('10');
   const [salePrice, setSalePrice] = useState('250');
+  const [sku, setSku] = useState('');
   
   const [loading, setLoading] = useState(true);
 
@@ -32,16 +33,19 @@ export default function AdminInventory() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!releaseId || !physicalFormatId) return alert("Faltan datos");
+    
+    const finalSku = sku.trim() || `INV-${releaseId}-${physicalFormatId}-${Date.now().toString().slice(-4)}`;
+    
     try {
-      const data = { releaseId: parseInt(releaseId), physicalFormatId: parseInt(physicalFormatId), stock: parseInt(stock), salePrice: parseFloat(salePrice) };
+      const data = { releaseId: parseInt(releaseId), physicalFormatId: parseInt(physicalFormatId), availableStock: parseInt(stock), salePrice: parseFloat(salePrice), sku: finalSku };
       await createInventory(data);
-      setStock('10'); setSalePrice('250'); loadData(); alert("Inventario actualizado.");
+      setStock('10'); setSalePrice('250'); setSku(''); loadData(); alert("Inventario actualizado con SKU: " + finalSku);
     } catch (err: any) { alert("Error: " + err.message); }
   };
 
   const handleDelete = async (id: number) => {
     if(!window.confirm("¿Eliminar lote de inventario?")) return;
-    try { await deleteInventory(id); loadData(); } catch (err: any) { alert("Error: " + err.message); }
+    try { await deleteInventory(id, 'Admin'); loadData(); } catch (err: any) { alert("Error: " + err.message); }
   };
 
   const getReleaseName = (id: number) => releases.find(r => r.id === id)?.title || 'Desconocido';
@@ -75,11 +79,15 @@ export default function AdminInventory() {
             </select>
           </div>
           <div className="md:col-span-2">
-            <label className="block text-xs font-semibold uppercase text-slate-400 mb-2 tracking-wider">Stock (Copias)</label>
+            <label className="block text-xs font-semibold uppercase text-slate-400 mb-2 tracking-wider">SKU (Código Almacén)</label>
+            <input type="text" placeholder="Autogenerar si se deja en blanco" value={sku} onChange={e => setSku(e.target.value)} className="w-full bg-white/[0.04] border border-white/10 rounded-lg p-2.5 text-slate-100 outline-none focus:border-violet-500/50 transition-all text-sm" />
+          </div>
+          <div className="md:col-span-1">
+            <label className="block text-xs font-semibold uppercase text-slate-400 mb-2 tracking-wider">Stock</label>
             <input type="number" min="0" required value={stock} onChange={e => setStock(e.target.value)} className="w-full bg-white/[0.04] border border-white/10 rounded-lg p-2.5 text-slate-100 outline-none focus:border-violet-500/50 transition-all text-sm" />
           </div>
-          <div className="md:col-span-2">
-            <label className="block text-xs font-semibold uppercase text-slate-400 mb-2 tracking-wider">Precio Venta Público ($)</label>
+          <div className="md:col-span-1">
+            <label className="block text-xs font-semibold uppercase text-slate-400 mb-2 tracking-wider">Precio Venta ($)</label>
             <input type="number" min="1" step="0.01" required value={salePrice} onChange={e => setSalePrice(e.target.value)} className="w-full bg-white/[0.04] border border-white/10 rounded-lg p-2.5 text-slate-100 outline-none focus:border-violet-500/50 transition-all text-sm" />
           </div>
         </div>
@@ -106,7 +114,7 @@ export default function AdminInventory() {
                   <td className="p-4 text-sm font-medium text-slate-200">{getReleaseName(inv.releaseId)}</td>
                   <td className="p-4 text-sm text-slate-400">{getFormatName(inv.physicalFormatId)}</td>
                   <td className="p-4 text-center">
-                    <span className={`px-2 py-1 rounded text-xs font-bold ${inv.stock < 5 ? 'bg-red-500/20 text-red-400 border border-red-500/20' : 'text-slate-300'}`}>{inv.stock}</span>
+                    <span className={`px-2 py-1 rounded text-xs font-bold ${inv.availableStock < 5 ? 'bg-red-500/20 text-red-400 border border-red-500/20' : 'text-slate-300'}`}>{inv.availableStock}</span>
                   </td>
                   <td className="p-4 text-right font-bold text-emerald-400 text-sm">${inv.salePrice}</td>
                   <td className="p-4 text-center space-x-2">
