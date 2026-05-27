@@ -49,7 +49,7 @@ export default function ArtistDashboard({
         <div className="flex flex-col gap-3 sticky top-20">
           <div className="mb-4">
             <h2 className="text-2xl font-bold gradient-text">
-              Panel
+              Panel de Artista
             </h2>
             <p className="text-sm text-slate-500 mt-1.5 truncate">Bienvenido, {currentUser.username}</p>
           </div>

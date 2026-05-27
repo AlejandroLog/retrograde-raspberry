@@ -112,7 +112,7 @@ export default function ArtistProfile({ currentUser, onLogout }: { currentUser: 
         <h4 className="font-bold text-red-400 text-sm uppercase mb-2">Zona de Peligro</h4>
         <p className="text-sm text-slate-500 mb-4">Eliminar tu cuenta ocultará todo tu catálogo del sistema.</p>
         <button onClick={handleDeleteAccount} className="bg-red-500/10 text-red-400 border border-red-500/20 font-semibold uppercase py-2.5 px-5 rounded-lg hover:bg-red-500/20 transition-all cursor-pointer text-sm">
-          Destruir Cuenta
+          Eliminar Cuenta
         </button>
       </div>
     </div>

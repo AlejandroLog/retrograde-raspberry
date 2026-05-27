@@ -289,8 +289,8 @@ export default function CustomerDashboard({ currentUser, onLogout }: { currentUs
                   </div>
                   <h3 className="text-2xl font-bold text-slate-200 mb-2">Tu carrito está vacío</h3>
                   <p className="text-slate-500 font-medium max-w-sm">Explora nuestro catálogo global o la mercancía oficial y apoya a la escena independiente.</p>
-                  <button onClick={() => handleNavClick('home')} className="mt-8 px-8 py-3 rounded-xl bg-white/[0.05] border border-white/10 text-cyan-400 font-bold hover:bg-white/[0.1] hover:border-cyan-500/50 hover:shadow-[0_0_20px_rgba(34,211,238,0.2)] transition-all duration-300 cursor-pointer">
-                    Descubrir Música
+                  <button onClick={() => handleNavClick('home')} className="mt-8 px-8 py-3 bg-gradient-to-r from-violet-600 to-cyan-600 rounded-xl font-bold text-white uppercase tracking-widest hover:shadow-[0_0_20px_rgba(139,92,246,0.4)] hover:-translate-y-1 transition-all">
+                    Descubrir
                   </button>
                 </div>
               </div>
