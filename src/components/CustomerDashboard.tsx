@@ -57,12 +57,18 @@ export default function CustomerDashboard({ currentUser, onLogout }: { currentUs
   };
 
   const addToCart = (item: CartItem) => {
-    if (!item.inventoryId) return;
+    if (!item.inventoryId && !item.merchandisingId) return;
 
     setCart(prev => {
-      const existing = prev.find(i => i.inventoryId === item.inventoryId);
+      const existing = prev.find(i => 
+        (item.inventoryId && i.inventoryId === item.inventoryId) || 
+        (item.merchandisingId && i.merchandisingId === item.merchandisingId)
+      );
       if (existing) {
-        return prev.map(i => i.inventoryId === item.inventoryId ? { ...i, quantity: i.quantity + 1 } : i);
+        return prev.map(i => 
+          (item.inventoryId && i.inventoryId === item.inventoryId) || (item.merchandisingId && i.merchandisingId === item.merchandisingId)
+            ? { ...i, quantity: i.quantity + 1 } : i
+        );
       }
       return [...prev, item];
     });
@@ -74,15 +80,8 @@ export default function CustomerDashboard({ currentUser, onLogout }: { currentUs
       return;
     }
 
-    const inventoryItem = allInventory.find(i => i.sku === m.sku);
-
-    if (!inventoryItem) {
-      alert("Error logístico: Este artículo aún no se refleja en el almacén maestro.");
-      return;
-    }
-
     addToCart({
-      inventoryId: inventoryItem.id, 
+      merchandisingId: m.id, 
       releaseTitle: m.name,
       formatName: m.type,
       price: m.publicPrice,
@@ -91,11 +90,11 @@ export default function CustomerDashboard({ currentUser, onLogout }: { currentUs
     alert(`¡"${m.name}" agregado al carrito!`);
   };
 
-  const removeFromCart = (inventoryId: number) => {
-    setCart(prev => prev.filter(i => i.inventoryId !== inventoryId));
+  const removeFromCart = (index: number) => {
+    setCart(prev => prev.filter((_, i) => i !== index));
   };
 
-  const validCartItems = cart.filter(item => item.inventoryId);
+  const validCartItems = cart.filter(item => item.inventoryId || item.merchandisingId);
   const cartTotal = validCartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
   const handleCheckout = async () => {
@@ -121,7 +120,8 @@ export default function CustomerDashboard({ currentUser, onLogout }: { currentUs
       for (const item of validCartItems) {
         await createSaleDetail({
           saleId: finalSaleId, 
-          inventoryId: item.inventoryId!,
+          inventoryId: item.inventoryId || null,
+          merchandisingId: item.merchandisingId || null,
           quantity: item.quantity,
           unitPrice: item.price
         });
@@ -319,7 +319,7 @@ export default function CustomerDashboard({ currentUser, onLogout }: { currentUs
                           <div className="flex items-center gap-6 w-full sm:w-auto justify-between sm:justify-end border-t border-white/5 sm:border-t-0 pt-4 sm:pt-0 mt-2 sm:mt-0">
                             <span className="font-black text-white text-xl">${item.price * item.quantity} <span className="text-xs text-slate-500 font-medium">MXN</span></span>
                             <button 
-                              onClick={() => item.inventoryId && removeFromCart(item.inventoryId)} 
+                              onClick={() => removeFromCart(idx)} 
                               className="w-10 h-10 rounded-full flex items-center justify-center text-red-400 hover:bg-red-500/10 hover:text-red-300 border border-transparent hover:border-red-500/20 transition-all cursor-pointer"
                               title="Eliminar"
                             >

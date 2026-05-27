@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { MerchandisingDto, ArtistDto, InventoryDto } from '../types/dtos';
-import { getMerch, updateMerch, approveMerch } from '../api/merchService';
+import { getMerch, updateMerch, approveMerch, deleteMerch } from '../api/merchService';
 import { getArtists } from '../api/artistService';
 import { createInventory } from '../api/shopService';
 
@@ -44,6 +44,11 @@ export default function AdminMerch() {
   const handleReject = async (merch: MerchandisingDto) => {
     if (!window.confirm("¿Rechazar esta propuesta de mercancía?")) return;
     try { await updateMerch(merch.id, { ...merch, status: 'Rechazado' }); loadData(); } catch (err: any) { alert("Error: " + err.message); }
+  };
+
+  const handleDelete = async (merch: MerchandisingDto) => {
+    if (!window.confirm("¿Estás seguro de que deseas ELIMINAR permanentemente esta mercancía? Esta acción no se puede deshacer.")) return;
+    try { await deleteMerch(merch.id, 'Admin'); loadData(); } catch (err: any) { alert("Error: " + err.message); }
   };
 
   if (loading) return (<div className="flex flex-col items-center justify-center py-20"><div className="w-12 h-12 border-[3px] border-violet-500/30 border-t-violet-500 rounded-full animate-spin mb-4"></div></div>);
@@ -94,6 +99,7 @@ export default function AdminMerch() {
                 <th className="p-4 text-xs font-semibold uppercase text-slate-400 tracking-wider text-right">Precio Base</th>
                 <th className="p-4 text-xs font-semibold uppercase text-slate-400 tracking-wider text-center">Estado</th>
                 <th className="p-4 text-xs font-semibold uppercase text-slate-400 tracking-wider text-center">Resolución</th>
+                <th className="p-4 text-xs font-semibold uppercase text-slate-400 tracking-wider text-center">Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -112,11 +118,14 @@ export default function AdminMerch() {
                     {m.status === 'Pendiente' ? (
                       <>
                         <button onClick={() => { setSelectedMerch(m); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="text-xs font-medium text-emerald-400 hover:text-emerald-300 px-3 py-1.5 rounded-lg border border-emerald-500/20 hover:bg-emerald-500/10 transition-colors cursor-pointer">Revisar</button>
-                        <button onClick={() => handleReject(m)} className="text-xs font-medium text-red-400 hover:text-red-300 px-3 py-1.5 rounded-lg border border-red-500/20 hover:bg-red-500/10 transition-colors cursor-pointer">Rechazar</button>
+                        <button onClick={() => handleReject(m)} className="text-xs font-medium text-amber-400 hover:text-amber-300 px-3 py-1.5 rounded-lg border border-amber-500/20 hover:bg-amber-500/10 transition-colors cursor-pointer">Rechazar</button>
                       </>
                     ) : (
                       <span className="text-[10px] text-slate-500 font-medium">RESUELTO</span>
                     )}
+                  </td>
+                  <td className="p-4 text-center">
+                    <button onClick={() => handleDelete(m)} className="text-[10px] font-bold text-red-400 hover:text-red-300 px-3 py-1.5 rounded bg-red-500/10 hover:bg-red-500/20 transition-colors cursor-pointer uppercase">Eliminar</button>
                   </td>
                 </tr>
               ))}

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import type { UserDto, MerchandisingDto, ArtistDto } from '../types/dtos';
 import { getArtists } from '../api/artistService';
-import { getMerch, createMerch } from '../api/merchService';
+import { getMerch, createMerch, deleteMerch } from '../api/merchService';
 
 export default function ArtistMerch({ currentUser }: { currentUser: UserDto }) {
   const [merchList, setMerchList] = useState<MerchandisingDto[]>([]);
@@ -42,6 +42,11 @@ export default function ArtistMerch({ currentUser }: { currentUser: UserDto }) {
 
   const getBandName = (id: number) => { const artist = myArtists.find(a => a.id === id); return artist ? artist.bandName : 'Desconocido'; };
   const previewPublicPrice = artistPrice ? (parseFloat(artistPrice) * 1.25).toFixed(2) : '0.00';
+
+  const handleDelete = async (merchId: number) => {
+    if (!window.confirm("¿Seguro que quieres borrar este artículo propuesto?")) return;
+    try { await deleteMerch(merchId, currentUser.username); loadData(); } catch (err: any) { alert("Error: " + err.message); }
+  };
 
   if (loading) return (<div className="flex flex-col items-center justify-center py-20"><div className="w-12 h-12 border-[3px] border-violet-500/30 border-t-violet-500 rounded-full animate-spin mb-4"></div><p className="text-slate-500 text-sm">Cargando catálogo de mercancía...</p></div>);
 
@@ -102,9 +107,14 @@ export default function ArtistMerch({ currentUser }: { currentUser: UserDto }) {
               <div className="p-3 flex-grow">
                 <h4 className="font-semibold text-slate-100 truncate">{m.name}</h4>
                 <p className="text-xs text-slate-500 mt-0.5">Banda: {getBandName(m.artistId)} · Base: ${m.artistPrice}</p>
-                <div className="mt-2 flex justify-between items-center">
-                  <span className={`rounded-full px-3 py-1 text-xs font-medium border ${m.status === 'Aceptado' ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20' : 'bg-amber-500/15 text-amber-400 border-amber-500/20 animate-pulse'}`}>{m.status}</span>
-                  {m.status === 'Aceptado' && <span className="text-[10px] text-slate-500 bg-white/[0.06] px-2 py-0.5 rounded">SKU: {m.sku} · Stock: {m.availableStock}</span>}
+                <div className="mt-2 flex justify-between items-center gap-2">
+                  <div className="flex gap-2 items-center flex-wrap">
+                    <span className={`rounded-full px-3 py-1 text-xs font-medium border ${m.status === 'Aceptado' ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20' : 'bg-amber-500/15 text-amber-400 border-amber-500/20 animate-pulse'}`}>{m.status}</span>
+                    {m.status === 'Aceptado' && <span className="text-[10px] text-slate-500 bg-white/[0.06] px-2 py-0.5 rounded">SKU: {m.sku} · Stock: {m.availableStock}</span>}
+                  </div>
+                  <button onClick={() => handleDelete(m.id)} className="text-xs font-medium text-red-400 hover:text-red-300 px-2 py-1 rounded bg-red-500/10 hover:bg-red-500/20 transition-colors cursor-pointer" title="Borrar">
+                    Eliminar
+                  </button>
                 </div>
               </div>
             </div>
